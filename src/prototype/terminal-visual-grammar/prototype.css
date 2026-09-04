@@ -168,8 +168,9 @@
   gap: 16px;
   overflow: hidden;
   padding: 0 12px;
-  color: var(--tv-accent-ink);
-  background: var(--tv-accent);
+  color: var(--tv-muted);
+  background: var(--tv-surface);
+  border-top: 1px solid var(--tv-line);
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
@@ -182,7 +183,8 @@
   margin-left: -12px;
   padding: 0 12px;
   color: var(--tv-accent);
-  background: var(--tv-accent-ink);
+  background: transparent;
+  border-right: 1px solid var(--tv-line);
 }
 
 .tv-status-spacer { flex: 1; }
@@ -287,8 +289,6 @@
 
 .tv-a-transcript > .tv-prompt-form {
   margin-top: 36px;
-  padding-top: 22px;
-  border-top: 1px dashed var(--tv-line);
 }
 
 /* B: a dense session ledger. The row grammar carries the hierarchy. */
