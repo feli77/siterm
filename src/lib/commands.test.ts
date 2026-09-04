@@ -1,0 +1,74 @@
+import { describe, expect, it } from 'vitest'
+import { completeCommand, parseCommand, suggestCommand, tokenize } from './commands'
+
+const context = { history: [] }
+
+describe('tokenize', () => {
+  it('keeps quoted guestbook messages together', () => {
+    expect(tokenize('sign "hello from the quiet web"')).toEqual([
+      'sign',
+      'hello from the quiet web',
+    ])
+  })
+
+  it('accepts single quotes and unquoted words', () => {
+    expect(tokenize("echo 'small tools' are good")).toEqual([
+      'echo',
+      'small tools',
+      'are',
+      'good',
+    ])
+  })
+})
+
+describe('parseCommand', () => {
+  it('opens posts by number and slug prefix', () => {
+    const byNumber = parseCommand('open 1', context)
+    const byPrefix = parseCommand('cat software-that', context)
+
+    expect(byNumber.kind).toBe('post')
+    expect(byPrefix.kind).toBe('post')
+    if (byNumber.kind === 'post' && byPrefix.kind === 'post') {
+      expect(byNumber.post.slug).toBe('software-that-leaves-room')
+      expect(byPrefix.post.slug).toBe(byNumber.post.slug)
+    }
+  })
+
+  it('filters posts by tag', () => {
+    expect(parseCommand('posts design', context)).toEqual({
+      kind: 'posts',
+      tag: 'design',
+    })
+  })
+
+  it('rejects unknown themes without changing state', () => {
+    expect(parseCommand('theme ultraviolet', context)).toEqual({
+      kind: 'theme',
+      invalid: 'ultraviolet',
+    })
+  })
+
+  it('returns a useful error when open has no target', () => {
+    expect(parseCommand('open', context)).toMatchObject({
+      kind: 'text',
+      tone: 'error',
+    })
+  })
+
+  it('preserves the provided history snapshot', () => {
+    expect(parseCommand('history', { history: ['about', 'history'] })).toEqual({
+      kind: 'history',
+      commands: ['about', 'history'],
+    })
+  })
+})
+
+describe('command discovery', () => {
+  it('completes an unambiguous prefix', () => {
+    expect(completeCommand('gue')).toBe('guestbook ')
+  })
+
+  it('suggests a nearby command', () => {
+    expect(suggestCommand('psots')).toBe('posts')
+  })
+})
