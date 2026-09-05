@@ -56,16 +56,6 @@ a:focus-visible {
   --accent: #74d680;
 }
 
-.terminal-session[data-theme="mono"] {
-  --background: #101010;
-  --surface: #171717;
-  --ink: #e6e6e6;
-  --muted: #989898;
-  --faint: #565656;
-  --rule: #3e3e3e;
-  --accent: #f4f4f4;
-}
-
 .terminal-session[data-theme="ice"] {
   --background: #0a1115;
   --surface: #101a20;
@@ -227,6 +217,14 @@ a:focus-visible {
 .status-spacer { min-width: 0; flex: 1; }
 .status-line > :not(.status-spacer) { flex: 0 0 auto; }
 .status-compact { display: none; }
+.status-measure {
+  position: absolute;
+  display: flex;
+  width: max-content;
+  gap: inherit;
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .output-heading { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; justify-content: space-between; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px dashed var(--rule); }
 .eyebrow { margin: 0; color: var(--muted); font-size: 11px; font-weight: 400; }
@@ -297,7 +295,7 @@ a:focus-visible {
   .prompt-command { white-space: pre-wrap; }
   .prompt-form input { font-size: 16px; }
 
-  .command-chip, .inline-command, .help-grid button, .post-list > button, .tag-cloud button, .theme-option { min-height: 44px; align-items: center; touch-action: manipulation; }
+  .command-chip, .inline-command, .help-grid button, .post-list > button, .tag-cloud button, .theme-option { align-items: center; }
   .command-chip, .inline-command, .tag-cloud button, .theme-option { display: inline-flex; margin-block: -10px; padding-block: 10px; }
 
   .status-line { gap: 9px; padding-inline: 9px; }
@@ -318,7 +316,7 @@ a:focus-visible {
   .status-profile { display: none; }
 }
 
-@media (pointer: coarse) {
+@media (max-width: 640px), (pointer: coarse) {
   .command-chip, .inline-command, .help-grid button, .post-list > button, .tag-cloud button, .theme-option { min-height: 44px; touch-action: manipulation; }
 }
 

@@ -102,8 +102,43 @@ test('supports prompt focus, history, and unique-prefix completion', async ({ pa
   })
   await expect(help).toBeFocused()
 
+  await page.getByText("Hello, I'm Felix.").evaluate((node) => {
+    window.getSelection()?.removeAllRanges()
+    node.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+  await expect(help).toBeFocused()
+
   await help.click()
   await expect(help).toBeFocused()
+})
+
+test('keeps earlier exchanges unchanged as session state moves', async ({ page }) => {
+  await page.goto('/')
+  const prompt = page.getByRole('textbox', { name: 'Terminal command' })
+
+  await prompt.fill('theme')
+  await prompt.press('Enter')
+  const firstThemeResult = page.getByRole('region', {
+    name: 'Command exchange: theme',
+    exact: true,
+  })
+  await expect(firstThemeResult.getByRole('button', { name: /amber/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+
+  await prompt.fill('theme green')
+  await prompt.press('Enter')
+  await expect(firstThemeResult.getByRole('button', { name: /amber/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+
+  await prompt.fill('open 1')
+  await prompt.press('Enter')
+  await expect(page.getByRole('contentinfo', { name: /Terminal session status/ })).toContainText(
+    'location:post/software-that-leaves-room',
+  )
 })
 
 test('uses approved desktop and compact geometry without horizontal overflow', async ({ page }) => {
@@ -114,9 +149,9 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
   const status = page.getByRole('contentinfo', { name: /Terminal session status/ })
   await expect(transcript).toHaveCSS('width', '920px')
   await expect(status).toHaveCSS('height', '28px')
-  await expect(status.getByText('session:siterm', { exact: true })).toBeVisible()
-  await expect(status.getByText('location:home', { exact: true })).toBeVisible()
-  await expect(status.getByText(/profile:/)).toBeVisible()
+  await expect(status.locator('[data-status-field="session"]')).toContainText('session:siterm')
+  await expect(status.locator('[data-status-field="location"]')).toContainText('location:home')
+  await expect(status.locator('[data-status-field="profile"]')).toBeVisible()
   await expect(status.locator('button, a, input')).toHaveCount(0)
   expect(await status.evaluate((node) => Math.round(node.getBoundingClientRect().bottom))).toBe(900)
 
@@ -125,9 +160,18 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
   await expect(page.locator('[data-boot="full"]')).toBeHidden()
   await expect(page.locator('[data-boot="compact"]')).toBeVisible()
 
+  await page.addStyleTag({ content: '.status-line { letter-spacing: 1.5em; }' })
+  const visibleStatusFieldsFit = await status.evaluate((node) => {
+    const boundary = node.getBoundingClientRect()
+    return [...node.querySelectorAll<HTMLElement>('[data-status-field]')]
+      .filter((field) => getComputedStyle(field).display !== 'none')
+      .every((field) => field.getBoundingClientRect().right <= boundary.right)
+  })
+  expect(visibleStatusFieldsFit).toBe(true)
+
   await page.setViewportSize({ width: 320, height: 700 })
   await expect(transcript).toHaveCSS('width', '292px')
-  await expect(status.getByText(/profile:/)).toBeHidden()
+  await expect(status.locator('[data-status-field="profile"]')).toBeHidden()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 
   const prompt = page.getByRole('textbox', { name: 'Terminal command' })
@@ -147,6 +191,10 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
     fontSize: '16px',
   })
   await expect(page.locator('[data-prompt] button[type="submit"]')).toHaveCount(0)
+
+  await prompt.fill(`echo ${'x'.repeat(120)}`)
+  await prompt.press('Enter')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 })
 
 test('animates only the block cursor and honors reduced motion', async ({ page }) => {
