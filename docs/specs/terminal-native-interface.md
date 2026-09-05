@@ -1,6 +1,8 @@
 # Terminal-native interface specification
 
-Status: Candidate for final approval
+Status: Approved on 2026-09-05
+
+Approval: [Approve the terminal-native implementation specification](https://github.com/feli77/siterm/issues/5)
 
 Scope: Production UI and interaction contract
 
