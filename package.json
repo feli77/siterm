@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prototype": "vite --open '/?variant=A'",
+    "prototype": "vite --open '/?prototype=content&variant=A'",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",

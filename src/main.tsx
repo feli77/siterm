@@ -1,16 +1,28 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { ContentCommandOutputPrototype } from './prototype/content-command-output/ContentCommandOutputPrototype'
 import { TerminalVisualGrammarPrototype } from './prototype/terminal-visual-grammar/TerminalVisualGrammarPrototype'
 import './styles.css'
+import './prototype/content-command-output/prototype.css'
 import './prototype/terminal-visual-grammar/prototype.css'
 
-const prototypeVariant = new URLSearchParams(window.location.search).get('variant')
+const searchParams = new URLSearchParams(window.location.search)
+const prototypeName = searchParams.get('prototype')
+const prototypeVariant = searchParams.get('variant')
+const showContentCommandPrototype =
+  import.meta.env.DEV && prototypeName === 'content' && ['A', 'B', 'C'].includes(prototypeVariant ?? '')
 const showVisualGrammarPrototype =
-  import.meta.env.DEV && ['A', 'B', 'C'].includes(prototypeVariant ?? '')
+  import.meta.env.DEV && prototypeName !== 'content' && ['A', 'B', 'C'].includes(prototypeVariant ?? '')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {showVisualGrammarPrototype ? <TerminalVisualGrammarPrototype /> : <App />}
+    {showContentCommandPrototype ? (
+      <ContentCommandOutputPrototype />
+    ) : showVisualGrammarPrototype ? (
+      <TerminalVisualGrammarPrototype />
+    ) : (
+      <App />
+    )}
   </StrictMode>,
 )
