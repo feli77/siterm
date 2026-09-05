@@ -11,7 +11,13 @@ import {
 } from 'react'
 import { siteConfig } from './config/site'
 import { findPost, posts } from './content/posts'
-import { completeCommand, parseCommand, type CommandResult } from './lib/commands'
+import {
+  browsePostsError,
+  completeCommand,
+  parseCommand,
+  type CommandResult,
+  type ErrorResult,
+} from './lib/commands'
 import { loadGuestbook, saveGuestbookEntry } from './lib/guestbook'
 import { themeNames, type GuestbookEntry, type Post, type ThemeName } from './types'
 
@@ -50,16 +56,24 @@ const helpRows = [
 ] as const
 
 function routeResult(): CommandResult | undefined {
-  const match = window.location.hash.match(/^#\/post\/(.+)$/)
-  if (!match) return undefined
+  const hash = window.location.hash
+  if (!hash || hash === '#' || hash === '#/') return undefined
+
+  const match = hash.match(/^#\/post\/(.+)$/)
+  if (!match) {
+    return browsePostsError(`invalid article route “${hash}”`)
+  }
 
   try {
-    const post = findPost(decodeURIComponent(match[1]))
+    const target = decodeURIComponent(match[1]).trim()
+    if (!target) return browsePostsError('article route is missing a target')
+
+    const post = findPost(target)
     return post
       ? { kind: 'post', post }
-      : { kind: 'text', text: 'That post does not exist. Run “posts” to browse.', tone: 'error' }
+      : browsePostsError(`no post matches “${target}”`)
   } catch {
-    return { kind: 'text', text: 'That URL could not be read.', tone: 'error' }
+    return browsePostsError('article route could not be decoded')
   }
 }
 
@@ -70,7 +84,7 @@ function initialEntries(
   const routed = routeResult()
   return [
     { id: 0, result: { kind: 'welcome' }, theme, guestbook },
-    ...(routed ? [{ id: 1, result: routed, theme, guestbook }] : []),
+    ...(routed ? [{ id: 1, result: routed, announce: true, theme, guestbook }] : []),
   ]
 }
 
@@ -104,6 +118,7 @@ function App() {
   const [clock, setClock] = useState(() => new Date())
   const inputRef = useRef<HTMLInputElement>(null)
   const promptRef = useRef<HTMLFormElement>(null)
+  const transcriptRef = useRef<HTMLElement>(null)
   const nextId = useRef(10)
 
   useEffect(() => {
@@ -190,6 +205,19 @@ function App() {
       viewport.removeEventListener('scroll', syncViewport)
     }
   }, [])
+
+  useLayoutEffect(() => {
+    const latestEntry = entries[entries.length - 1]
+    if (latestEntry?.result.kind !== 'post') return
+
+    const headings = transcriptRef.current?.querySelectorAll<HTMLElement>(
+      '.article-header h2',
+    )
+    headings?.[headings.length - 1]?.scrollIntoView({
+      block: 'start',
+      behavior: 'auto',
+    })
+  }, [entries])
 
   const runCommand = useCallback(
     (raw: string) => {
@@ -322,6 +350,7 @@ function App() {
   return (
     <div className="terminal-session" data-theme={theme} data-terminal-session>
       <main
+        ref={transcriptRef}
         className="transcript"
         data-transcript
         aria-label="Terminal transcript"
@@ -568,6 +597,8 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
       )
     case 'text':
       return <Notice tone={result.tone}>{result.text}</Notice>
+    case 'error':
+      return <ErrorOutput error={result} onRun={onRun} />
     case 'unknown':
       return (
         <div className="output-block notice notice-error">
@@ -588,6 +619,26 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
         </div>
       )
   }
+}
+
+function ErrorOutput({
+  error,
+  onRun,
+}: {
+  error: ErrorResult
+  onRun: (command: string) => void
+}) {
+  return (
+    <div className="output-block notice notice-error">
+      <p>error: {error.cause}</p>
+      <p>
+        hint:{' '}
+        {error.hint.before}
+        <CommandButton command={error.hint.command} onRun={onRun} />
+        {error.hint.after}
+      </p>
+    </div>
+  )
 }
 
 function WelcomeOutput({ onRun }: { onRun: (command: string) => void }) {
@@ -704,11 +755,14 @@ function PostsOutput({ tag, onRun }: { tag?: string; onRun: (command: string) =>
 }
 
 function PostOutput({ post, onRun }: { post: Post; onRun: (command: string) => void }) {
+  const postIndex = posts.indexOf(post)
+  const nextPost = postIndex >= 0 ? posts[postIndex + 1] : undefined
+
   return (
-    <article className="output-block article-output">
+    <article className="output-block article-output" aria-label={post.title}>
       <header className="article-header">
         <p className="eyebrow">~/notes/{post.slug}.md</p>
-        <h2>{post.title}</h2>
+        <h2><MarkdownToken># </MarkdownToken>{post.title}</h2>
         <div className="article-byline">
           <time dateTime={post.date}>{post.date}</time>
           <span>{post.readingTime} read</span>
@@ -720,29 +774,52 @@ function PostOutput({ post, onRun }: { post: Post; onRun: (command: string) => v
         {post.content.map((section, index) => {
           switch (section.type) {
             case 'heading':
-              return <h3 key={index}>{section.text}</h3>
+              return <h3 key={index}><MarkdownToken>## </MarkdownToken>{section.text}</h3>
             case 'paragraph':
               return <p key={index}>{section.text}</p>
             case 'quote':
-              return <blockquote key={index}>{section.text}</blockquote>
+              return (
+                <blockquote key={index}>
+                  <MarkdownToken>&gt; </MarkdownToken>
+                  <span>{section.text}</span>
+                </blockquote>
+              )
             case 'list':
-              return <ul key={index}>{section.items.map((item) => <li key={item}>{item}</li>)}</ul>
+              return (
+                <ul key={index}>
+                  {section.items.map((item) => (
+                    <li key={item}><MarkdownToken>- </MarkdownToken>{item}</li>
+                  ))}
+                </ul>
+              )
             case 'code':
               return (
                 <figure className="code-block" key={index}>
-                  <figcaption>{section.language}</figcaption>
-                  <pre><code>{section.code}</code></pre>
+                  <pre><code>
+                    <MarkdownToken>{`\`\`\`${section.language}`}</MarkdownToken>{'\n'}
+                    {section.code}{'\n'}
+                    <MarkdownToken>```</MarkdownToken>
+                  </code></pre>
                 </figure>
               )
           }
         })}
       </div>
       <footer className="article-footer">
-        <span>EOF</span>
-        <CommandButton command="posts" onRun={onRun} label="back to index" />
+        <span>-- END --</span>
+        <span className="article-footer-commands">
+          return to <CommandButton command="posts" onRun={onRun} />
+          {nextPost ? (
+            <> · next <CommandButton command={`open ${nextPost.slug}`} onRun={onRun} /></>
+          ) : null}
+        </span>
       </footer>
     </article>
   )
+}
+
+function MarkdownToken({ children }: { children: ReactNode }) {
+  return <span className="markdown-token" aria-hidden="true">{children}</span>
 }
 
 function TagsOutput({ onRun }: { onRun: (command: string) => void }) {

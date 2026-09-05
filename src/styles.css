@@ -252,18 +252,22 @@ a:focus-visible {
 .post-meta { align-items: flex-end; font-size: 11px; }
 .open-glyph { color: var(--accent); }
 
-.article-output, .article-body { max-width: 68ch; }
+.article-output, .article-body { max-width: 68ch; overflow-wrap: anywhere; }
 .article-header { padding-bottom: 18px; border-bottom: 1px dashed var(--rule); }
+.article-header h2 { scroll-margin-block-start: 22px; }
 .article-byline { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 11px; }
 .article-lede, .article-body blockquote { color: var(--muted); }
 .article-body h3 { margin: 32px 0 12px; font-size: 17px; }
-.article-body h3::before { color: var(--accent); content: "## "; }
-.article-body blockquote { margin-left: 0; padding-left: 2ch; border-left: 1px solid var(--rule); }
-.article-body ul { padding-left: 2ch; }
+.markdown-token { color: var(--accent); font-weight: 400; }
+.article-body blockquote { margin-left: 0; padding-left: 0; border-left: 0; }
+.article-body ul { padding-left: 0; list-style: none; }
+.article-body blockquote .markdown-token,
+.article-body li .markdown-token { margin-right: 1ch; }
 .code-block { max-width: 100%; margin: 28px 0; color: var(--muted); background: var(--surface); border-left: 1px solid var(--rule); }
-.code-block figcaption, .code-block pre { margin: 0; padding: 8px 14px; }
+.code-block pre { margin: 0; padding: 8px 14px; }
 .code-block pre { overflow-wrap: anywhere; font: inherit; white-space: pre-wrap; }
 .article-footer { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; padding-top: 18px; border-top: 1px solid var(--rule); color: var(--muted); }
+.article-footer-commands { min-width: 0; overflow-wrap: anywhere; }
 
 .tag-cloud, .theme-grid { display: flex; flex-wrap: wrap; gap: 12px 24px; }
 .tag-cloud button, .theme-option { padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; border-bottom: 1px dotted currentColor; }

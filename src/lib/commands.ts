@@ -22,6 +22,18 @@ export const commandNames = [
 
 export type CommandName = (typeof commandNames)[number]
 
+export interface CommandHint {
+  before: string
+  command: string
+  after: string
+}
+
+export interface ErrorResult {
+  kind: 'error'
+  cause: string
+  hint: CommandHint
+}
+
 export type CommandResult =
   | { kind: 'noop' }
   | { kind: 'welcome' }
@@ -36,12 +48,21 @@ export type CommandResult =
   | { kind: 'contact' }
   | { kind: 'history'; commands: readonly string[] }
   | { kind: 'text'; text: string; tone?: 'muted' | 'success' | 'error' }
+  | ErrorResult
   | { kind: 'unknown'; command: string; suggestion?: string }
   | { kind: 'clear' }
 
 export interface ParseContext {
   history: readonly string[]
   now?: Date
+}
+
+export function browsePostsError(cause: string): ErrorResult {
+  return {
+    kind: 'error',
+    cause,
+    hint: { before: 'run ', command: 'posts', after: ' to browse' },
+  }
 }
 
 export function tokenize(input: string): string[] {
@@ -106,18 +127,17 @@ export function parseCommand(rawInput: string, context: ParseContext): CommandRe
     case 'open':
     case 'read':
     case 'cat': {
-      if (args.length === 0) {
-        return { kind: 'text', text: 'usage: open <post number | slug>', tone: 'error' }
+      const target = args.join(' ').trim()
+      if (!target) {
+        return browsePostsError(
+          'open needs a post number, title, slug, or slug prefix',
+        )
       }
 
-      const post = findPost(args.join(' '))
+      const post = findPost(target)
       return post
         ? { kind: 'post', post }
-        : {
-            kind: 'text',
-            text: `post not found: ${args.join(' ')} — run “posts” to browse`,
-            tone: 'error',
-          }
+        : browsePostsError(`no post matches “${target}”`)
     }
     case 'tags':
       return { kind: 'tags' }

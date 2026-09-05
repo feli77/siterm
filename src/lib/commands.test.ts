@@ -48,10 +48,27 @@ describe('parseCommand', () => {
     })
   })
 
-  it('returns a useful error when open has no target', () => {
-    expect(parseCommand('open', context)).toMatchObject({
-      kind: 'text',
-      tone: 'error',
+  it('returns recoverable error and hint lines when open has no target', () => {
+    expect(parseCommand('open', context)).toEqual({
+      kind: 'error',
+      cause: 'open needs a post number, title, slug, or slug prefix',
+      hint: { before: 'run ', command: 'posts', after: ' to browse' },
+    })
+  })
+
+  it('treats a quoted blank article target as missing', () => {
+    expect(parseCommand('open ""', context)).toEqual({
+      kind: 'error',
+      cause: 'open needs a post number, title, slug, or slug prefix',
+      hint: { before: 'run ', command: 'posts', after: ' to browse' },
+    })
+  })
+
+  it('returns a recoverable error when no post matches the target', () => {
+    expect(parseCommand('read missing-article', context)).toEqual({
+      kind: 'error',
+      cause: 'no post matches “missing-article”',
+      hint: { before: 'run ', command: 'posts', after: ' to browse' },
     })
   })
 

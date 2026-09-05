@@ -124,6 +124,8 @@ export const posts: readonly Post[] = [
 
 export function findPost(query: string): Post | undefined {
   const normalized = query.trim().toLowerCase()
+  if (!normalized) return undefined
+
   const numericIndex = Number(normalized)
 
   if (Number.isInteger(numericIndex) && numericIndex > 0) {
