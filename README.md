@@ -25,9 +25,12 @@ npm run dev
 
 ```bash
 npm test
+npm run test:e2e
 npm run build
 npm run preview
 ```
+
+首次运行浏览器测试前，安装 Chromium：`npx playwright install chromium`。
 
 ## 自定义
 
@@ -36,7 +39,7 @@ npm run preview
 - `src/config/site.ts`：姓名、简介、所在地、邮箱、GitHub 地址和默认主题。
 - `src/content/posts.ts`：文章元数据和正文区块。
 
-可用主题是 `green`、`amber`、`ice` 和 `rose`。命令行为集中在 `src/lib/commands.ts`，展示组件在 `src/App.tsx`，视觉样式在 `src/styles.css`。
+可用主题是 `green`、`amber`、`ice` 和 `rose`，默认主题是 `amber`。命令行为集中在 `src/lib/commands.ts`，展示组件在 `src/App.tsx`，视觉样式在 `src/styles.css`。
 
 ## 命令
 

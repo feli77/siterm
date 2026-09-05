@@ -15,10 +15,18 @@ import { loadGuestbook, saveGuestbookEntry } from './lib/guestbook'
 import { themeNames, type GuestbookEntry, type Post, type ThemeName } from './types'
 
 type TerminalEntry =
-  | { id: number; type: 'command'; value: string }
-  | { id: number; type: 'result'; result: CommandResult }
+  { id: number; command?: string; result: CommandResult; announce?: boolean }
 
-const quickCommands = ['about', 'posts', 'guestbook', 'theme'] as const
+const fullBootMark = String.raw`  _____ ___ _____ _____ ____  __  __
+ / ___//  _/_  __/ ____/ __ \/  |/  /
+ \__ \ / /  / / / __/ / /_/ / /|_/ /
+___/ // /  / / / /___/ _, _/ /  / /
+/____/___/ /_/ /_____/_/ |_/_/  /_/`
+
+const compactBootMark = String.raw` ___ ___ _____
+/ __|_ _|_   _|
+\__ \| |  | |
+|___/___| |_|`
 
 const helpRows = [
   ['about', 'a short system profile'],
@@ -51,8 +59,8 @@ function routeResult(): CommandResult | undefined {
 function initialEntries(): TerminalEntry[] {
   const routed = routeResult()
   return [
-    { id: 0, type: 'result', result: { kind: 'welcome' } },
-    ...(routed ? [{ id: 1, type: 'result' as const, result: routed }] : []),
+    { id: 0, result: { kind: 'welcome' } },
+    ...(routed ? [{ id: 1, result: routed }] : []),
   ]
 }
 
@@ -72,7 +80,7 @@ function App() {
   const [guestbook, setGuestbook] = useState<GuestbookEntry[]>(loadGuestbook)
   const [clock, setClock] = useState(() => new Date())
   const inputRef = useRef<HTMLInputElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const promptRef = useRef<HTMLFormElement>(null)
   const nextId = useRef(10)
 
   useEffect(() => {
@@ -89,29 +97,6 @@ function App() {
     return () => window.clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    const scroller = scrollRef.current
-    if (!scroller) return
-
-    const latestResult = [...entries]
-      .reverse()
-      .find((entry) => entry.type === 'result')
-
-    if (latestResult?.type === 'result' && latestResult.result.kind === 'post') {
-      const article = scroller.querySelector<HTMLElement>('.article-output:last-of-type')
-      if (article) {
-        const top = article.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop
-        scroller.scrollTo({ top: Math.max(0, top - 22), behavior: entries.length > 2 ? 'smooth' : 'auto' })
-      }
-      return
-    }
-
-    scroller.scrollTo({
-      top: scroller.scrollHeight,
-      behavior: entries.length > 2 ? 'smooth' : 'auto',
-    })
-  }, [entries])
-
   const appendRouteResult = useCallback(() => {
     const result = routeResult() ?? { kind: 'welcome' as const }
     if (result.kind === 'post') {
@@ -121,7 +106,7 @@ function App() {
     }
     setEntries((current) => [
       ...current,
-      { id: nextId.current++, type: 'result', result },
+      { id: nextId.current++, result, announce: true },
     ])
   }, [])
 
@@ -148,8 +133,37 @@ function App() {
     return () => window.removeEventListener('keydown', focusPrompt)
   }, [])
 
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+
+    let settleTimer = 0
+    const syncViewport = () => {
+      const bottomInset = Math.max(
+        0,
+        window.innerHeight - viewport.height - viewport.offsetTop,
+      )
+      document.documentElement.style.setProperty('--viewport-bottom', `${bottomInset}px`)
+      window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => {
+        if (document.activeElement === inputRef.current) {
+          promptRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+        }
+      }, 120)
+    }
+
+    syncViewport()
+    viewport.addEventListener('resize', syncViewport)
+    viewport.addEventListener('scroll', syncViewport)
+    return () => {
+      window.clearTimeout(settleTimer)
+      viewport.removeEventListener('resize', syncViewport)
+      viewport.removeEventListener('scroll', syncViewport)
+    }
+  }, [])
+
   const runCommand = useCallback(
-    (raw: string, echo = true) => {
+    (raw: string) => {
       const normalized = raw.trim()
       if (!normalized) return
 
@@ -202,13 +216,15 @@ function App() {
         document.title = `siterm — ${siteConfig.name}'s terminal`
       }
 
-      const additions: TerminalEntry[] = [
-        ...(echo
-          ? [{ id: nextId.current++, type: 'command' as const, value: normalized }]
-          : []),
-        { id: nextId.current++, type: 'result', result: finalResult },
-      ]
-      setEntries((current) => [...current, ...additions])
+      setEntries((current) => [
+        ...current,
+        {
+          id: nextId.current++,
+          command: normalized,
+          result: finalResult,
+          announce: true,
+        },
+      ])
     },
     [history],
   )
@@ -253,7 +269,11 @@ function App() {
 
   const focusPrompt = (event: ReactMouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement
-    if (!target.closest('button, a, input, article')) inputRef.current?.focus()
+    const selection = window.getSelection()?.toString()
+    const isInteractive = target.closest(
+      'button, a, input, textarea, select, article, [contenteditable="true"]',
+    )
+    if (!selection && !isInteractive) inputRef.current?.focus()
   }
 
   const localTime = useMemo(
@@ -268,143 +288,100 @@ function App() {
   )
 
   return (
-    <div className="app" data-theme={theme}>
-      <div className="ambient-noise" aria-hidden="true" />
-      <section className="terminal-window" aria-label={`${siteConfig.name}'s personal terminal`}>
-        <header className="window-bar">
-          <div className="window-controls" aria-hidden="true">
-            <span className="control control-close" />
-            <span className="control control-minimize" />
-            <span className="control control-expand" />
-          </div>
-          <div className="window-title">
-            <span className="folder-glyph">⌁</span>
-            {siteConfig.handle}@{siteConfig.hostname}: ~
-          </div>
-          <div className="window-state">
-            <span className="status-dot" /> online
-          </div>
-        </header>
-
-        <div className="terminal-layout">
-          <aside className="sidebar">
-            <div className="identity-block">
-              <div className="monogram" aria-hidden="true">
-                {siteConfig.monogram}
-              </div>
-              <div>
-                <p className="eyebrow">personal terminal</p>
-                <h1>{siteConfig.name}</h1>
-              </div>
-            </div>
-
-            <nav className="quick-nav" aria-label="Quick commands">
-              <p className="sidebar-label">~/shortcuts</p>
-              {quickCommands.map((command, index) => (
-                <button key={command} type="button" onClick={() => runCommand(command)}>
-                  <span className="nav-index">0{index + 1}</span>
-                  <span>{command}</span>
-                  <span className="nav-arrow">↗</span>
-                </button>
-              ))}
-            </nav>
-
-            <div className="system-card">
-              <p className="sidebar-label">~/system</p>
-              <dl>
-                <div>
-                  <dt>local</dt>
-                  <dd>{localTime}</dd>
-                </div>
-                <div>
-                  <dt>theme</dt>
-                  <dd>{theme}</dd>
-                </div>
-                <div>
-                  <dt>notes</dt>
-                  <dd>{posts.length}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <p className="sidebar-status">
-              <span className="status-dot" /> {siteConfig.status}
-            </p>
-          </aside>
-
-          <main className="terminal-main" onClick={focusPrompt}>
-            <div className="terminal-scroll" ref={scrollRef} aria-live="polite">
-              <div className="terminal-output">
-                {entries.length === 0 ? (
-                  <EmptyTerminal onRun={runCommand} />
-                ) : (
-                  entries.map((entry) =>
-                    entry.type === 'command' ? (
-                      <CommandEcho key={entry.id} value={entry.value} />
-                    ) : (
-                      <Output
-                        key={entry.id}
-                        result={entry.result}
-                        theme={theme}
-                        guestbook={guestbook}
-                        onRun={runCommand}
-                      />
-                    ),
-                  )
-                )}
-              </div>
-            </div>
-
-            <form
-              className="prompt-form"
-              onSubmit={(event) => {
-                event.preventDefault()
-                submit()
-              }}
+    <div className="terminal-session" data-theme={theme} data-terminal-session>
+      <main
+        className="transcript"
+        data-transcript
+        aria-label="Terminal transcript"
+        onClick={focusPrompt}
+      >
+        {entries.map((entry) => (
+          <section
+            className={entry.command ? 'exchange' : 'initial-output'}
+            data-exchange=""
+            key={entry.id}
+            aria-label={entry.command ? `Command exchange: ${entry.command}` : undefined}
+          >
+            {entry.command ? <CommandEcho value={entry.command} /> : null}
+            <div
+              className={entry.command ? 'response' : undefined}
+              aria-live={entry.announce ? 'polite' : undefined}
+              aria-atomic={entry.announce ? false : undefined}
             >
-              <label className="sr-only" htmlFor="terminal-command">
-                Terminal command
-              </label>
-              <Prompt />
-              <input
-                id="terminal-command"
-                ref={inputRef}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                placeholder="type a command…"
-                aria-describedby="prompt-hint"
+              <Output
+                result={entry.result}
+                theme={theme}
+                guestbook={guestbook}
+                onRun={runCommand}
               />
-              <span className="input-caret" aria-hidden="true" />
-              <button type="submit" disabled={!input.trim()}>
-                run <span>↵</span>
-              </button>
-            </form>
-          </main>
-        </div>
+            </div>
+          </section>
+        ))}
 
-        <footer className="terminal-footer" id="prompt-hint">
-          <span><kbd>↑</kbd><kbd>↓</kbd> history</span>
-          <span><kbd>tab</kbd> complete</span>
-          <span><kbd>/</kbd> focus prompt</span>
-          <span className="footer-path">UTF-8 · zsh-ish</span>
-        </footer>
-      </section>
+        <form
+          ref={promptRef}
+          className="prompt-form"
+          data-prompt=""
+          aria-label="Command prompt"
+          onSubmit={(event) => {
+            event.preventDefault()
+            submit()
+          }}
+        >
+          <label className="sr-only" htmlFor="terminal-command">
+            Terminal command
+          </label>
+          <Prompt />
+          <input
+            id="terminal-command"
+            ref={inputRef}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            onFocus={() => promptRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })}
+            autoComplete="off"
+            autoCapitalize="none"
+            enterKeyHint="send"
+            spellCheck={false}
+            aria-describedby="prompt-hint"
+            style={{ width: `${Math.max(input.length, 1)}ch` }}
+          />
+          <span className="block-cursor" data-cursor="" aria-hidden="true" />
+          <span className="sr-only" id="prompt-hint">
+            Use Arrow Up and Arrow Down for history, Tab to complete, and slash to focus this prompt.
+          </span>
+        </form>
+      </main>
+
+      <footer
+        className="status-line"
+        aria-label={`Terminal session status: siterm, home, ${theme} profile, ${siteConfig.location}, ${localTime}`}
+      >
+        <span className="status-session">
+          <span className="status-wide">session:siterm</span>
+          <span className="status-compact">[st]</span>
+        </span>
+        <span>
+          <span className="status-wide">location:home</span>
+          <span className="status-compact">home</span>
+        </span>
+        <span className="status-spacer" />
+        <span className="status-profile">profile:{theme}</span>
+        <span className="status-time">
+          <span className="status-wide">Shanghai </span>{localTime}
+        </span>
+      </footer>
     </div>
   )
 }
 
-function Prompt() {
+function Prompt({ command }: { command?: string }) {
   return (
     <span className="prompt" aria-hidden="true">
-      <span className="prompt-user">{siteConfig.handle}</span>
-      <span className="prompt-at">@</span>
-      <span className="prompt-host">{siteConfig.hostname}</span>
+      <span className="prompt-user">{siteConfig.handle}@{siteConfig.hostname}</span>
       <span className="prompt-path">:~</span>
       <span className="prompt-symbol">$</span>
+      {command ? <span className="prompt-command"> {command}</span> : null}
     </span>
   )
 }
@@ -412,17 +389,7 @@ function Prompt() {
 function CommandEcho({ value }: { value: string }) {
   return (
     <div className="command-echo">
-      <Prompt />
-      <span>{value}</span>
-    </div>
-  )
-}
-
-function EmptyTerminal({ onRun }: { onRun: (command: string) => void }) {
-  return (
-    <div className="empty-terminal output-block">
-      <p>screen cleared. cursor waiting.</p>
-      <CommandButton command="home" onRun={onRun} label="restore welcome" />
+      <Prompt command={value} />
     </div>
   )
 }
@@ -507,23 +474,18 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
 function WelcomeOutput({ onRun }: { onRun: (command: string) => void }) {
   return (
     <section className="welcome output-block">
-      <div className="boot-line">
-        <span>●</span> session restored <span className="boot-version">siterm/0.1</span>
-      </div>
-      <pre className="ascii-logo" aria-label="SITERM">
-{`███████╗██╗████████╗███████╗██████╗ ███╗   ███╗
-██╔════╝██║╚══██╔══╝██╔════╝██╔══██╗████╗ ████║
-███████╗██║   ██║   █████╗  ██████╔╝██╔████╔██║
-╚════██║██║   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║
-███████║██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║
-╚══════╝╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝`}
-      </pre>
+      <section className="boot-sequence" aria-label="Siterm boot sequence">
+        <pre data-boot="full" aria-hidden="true">{fullBootMark}</pre>
+        <pre data-boot="compact" aria-hidden="true">{compactBootMark}</pre>
+        <p>[ personal publishing / one continuous terminal session ]</p>
+      </section>
       <div className="welcome-copy">
-        <p className="comment">// a small address on the wide internet</p>
+        <p className="comment">// configured owner</p>
         <h2>Hello, I'm {siteConfig.name}.</h2>
+        <p className="owner-role">{siteConfig.role}</p>
         <p>{siteConfig.bio}</p>
       </div>
-      <div className="command-suggestions" aria-label="Suggested commands">
+      <div className="command-suggestions" role="group" aria-label="Suggested commands">
         <span>start here:</span>
         <CommandButton command="about" onRun={onRun} />
         <CommandButton command="posts" onRun={onRun} />
@@ -784,7 +746,7 @@ function CommandButton({
 }) {
   return (
     <button className="command-chip" type="button" onClick={() => onRun(command)}>
-      <span>$</span> {label ?? command}
+      {label ?? command}
     </button>
   )
 }

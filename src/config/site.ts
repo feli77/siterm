@@ -20,7 +20,7 @@ export const siteConfig: SiteConfig = {
   name: 'Felix',
   monogram: 'FX',
   handle: 'guest',
-  hostname: 'feli.dev',
+  hostname: 'feli',
   role: 'Software builder & careful observer',
   bio: 'I make small, durable things for the web and write about the decisions hiding inside them.',
   location: 'Shanghai, CN',
@@ -28,6 +28,6 @@ export const siteConfig: SiteConfig = {
   email: 'hello@example.com',
   github: 'https://github.com/feli77',
   status: 'available for interesting problems',
-  defaultTheme: 'green',
+  defaultTheme: 'amber',
   interests: ['systems', 'interfaces', 'open source', 'digital gardens'],
 }
