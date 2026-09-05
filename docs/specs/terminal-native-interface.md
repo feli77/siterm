@@ -1,6 +1,6 @@
 # Terminal-native interface specification
 
-Status: Draft for live approval
+Status: Candidate for final approval
 
 Scope: Production UI and interaction contract
 
