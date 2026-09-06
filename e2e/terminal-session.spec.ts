@@ -197,7 +197,7 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 })
 
-test('animates only the block cursor and honors reduced motion', async ({ page }) => {
+test('uses the native block caret without CSS motion', async ({ page }) => {
   await page.goto('/')
   const motion = await page.locator('body *').evaluateAll((nodes) => ({
     animated: nodes
@@ -209,12 +209,16 @@ test('animates only the block cursor and honors reduced motion', async ({ page }
     scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
   }))
   expect(motion).toEqual({
-    animated: [''],
+    animated: [],
     transitioned: [],
     scrollBehavior: 'auto',
   })
 
+  const prompt = page.getByRole('textbox', { name: 'Terminal command' })
+  await expect(page.locator('[data-cursor], .block-cursor')).toHaveCount(0)
+  await expect(prompt).toHaveCSS('caret-shape', 'block')
+  await expect(prompt).toHaveCSS('caret-color', 'rgb(245, 185, 66)')
+
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(page.locator('[data-cursor]')).toHaveCSS('animation-name', 'none')
-  await expect(page.locator('[data-cursor]')).toHaveCSS('opacity', '0.78')
+  await expect(prompt).toHaveCSS('caret-shape', 'block')
 })

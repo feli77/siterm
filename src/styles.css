@@ -170,7 +170,8 @@ a:focus-visible {
   flex: 0 1 auto;
   padding: 0;
   color: var(--ink);
-  caret-color: transparent;
+  caret-color: var(--accent);
+  caret-shape: block;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -178,15 +179,6 @@ a:focus-visible {
 }
 
 .prompt-form:focus-within .prompt-symbol { color: var(--accent); }
-
-.block-cursor {
-  width: 7px;
-  height: 1.15em;
-  flex: 0 0 7px;
-  margin-left: 2px;
-  background: var(--accent);
-  opacity: .78;
-}
 
 .status-line {
   position: fixed;

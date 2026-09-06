@@ -428,9 +428,8 @@ function App() {
             enterKeyHint="send"
             spellCheck={false}
             aria-describedby="prompt-hint"
-            style={{ width: `${Math.max(input.length, 1)}ch` }}
+            style={{ width: `${Math.max(input.length + 1, 1)}ch` }}
           />
-          <span className="block-cursor" data-cursor="" aria-hidden="true" />
           <span className="sr-only" id="prompt-hint">
             Use Arrow Up and Arrow Down for history, Tab to complete, and slash to focus this prompt.
           </span>

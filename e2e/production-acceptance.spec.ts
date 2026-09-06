@@ -269,11 +269,14 @@ test('exposes one logical keyboard and assistive-technology journey', async ({ p
         accent: getComputedStyle(document.querySelector('[data-terminal-session]')!)
           .getPropertyValue('--accent').trim(),
         symbol: getComputedStyle(node.querySelector('.prompt-symbol')!).color,
-        cursorVisibility: getComputedStyle(node.querySelector('[data-cursor]')!).visibility,
+        caretColor: getComputedStyle(node.querySelector('#terminal-command')!).caretColor,
+        caretShape: getComputedStyle(node.querySelector('#terminal-command')!)
+          .getPropertyValue('caret-shape'),
       }))
       expect(promptFocus.symbol).toBe('rgb(245, 185, 66)')
       expect(promptFocus.accent).toBe('#f5b942')
-      expect(promptFocus.cursorVisibility).toBe('visible')
+      expect(promptFocus.caretColor).toBe('rgb(245, 185, 66)')
+      expect(promptFocus.caretShape).toBe('block')
     } else {
       await expect(target).toHaveCSS('outline-style', 'solid')
     }

@@ -93,7 +93,7 @@ test('applies every terminal profile token to the whole session immediately', as
     const styles = await page.locator('[data-terminal-session]').evaluate((node) => {
       const session = getComputedStyle(node)
       const status = getComputedStyle(document.querySelector('.status-line')!)
-      const cursor = getComputedStyle(document.querySelector('[data-cursor]')!)
+      const prompt = getComputedStyle(document.querySelector('#terminal-command')!)
       const selection = getComputedStyle(node, '::selection')
       return {
         tokens: Object.fromEntries(
@@ -106,7 +106,8 @@ test('applies every terminal profile token to the whole session immediately', as
         rootBackground: getComputedStyle(document.documentElement).backgroundColor,
         sessionBackground: session.backgroundColor,
         statusBackground: status.backgroundColor,
-        cursorBackground: cursor.backgroundColor,
+        caretColor: prompt.caretColor,
+        caretShape: prompt.getPropertyValue('caret-shape'),
         selectionBackground: selection.backgroundColor,
       }
     })
@@ -117,7 +118,8 @@ test('applies every terminal profile token to the whole session immediately', as
     expect(styles.sessionBackground).toBe(hexToRgb(expected.background))
     expect(styles.statusBackground).toBe(hexToRgb(expected.surface))
     expect(styles.statusBackground).not.toBe(hexToRgb(expected.accent))
-    expect(styles.cursorBackground).toBe(hexToRgb(expected.accent))
+    expect(styles.caretColor).toBe(hexToRgb(expected.accent))
+    expect(styles.caretShape).toBe('block')
     expect(styles.selectionBackground).toBe(hexToRgb(expected.accent))
     await expect.poll(() => page.evaluate(() => localStorage.getItem('siterm.theme'))).toBe(name)
     await expect(page.getByRole('contentinfo', { name: new RegExp(`${name} profile`) }))
