@@ -159,19 +159,11 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
   await expect(transcript).toHaveCSS('width', '612px')
   await expect(page.locator('[data-boot="full"]')).toBeHidden()
   await expect(page.locator('[data-boot="compact"]')).toBeVisible()
-
-  await page.addStyleTag({ content: '.status-line { letter-spacing: 1.5em; }' })
-  const visibleStatusFieldsFit = await status.evaluate((node) => {
-    const boundary = node.getBoundingClientRect()
-    return [...node.querySelectorAll<HTMLElement>('[data-status-field]')]
-      .filter((field) => getComputedStyle(field).display !== 'none')
-      .every((field) => field.getBoundingClientRect().right <= boundary.right)
-  })
-  expect(visibleStatusFieldsFit).toBe(true)
+  await expect(status).toBeHidden()
 
   await page.setViewportSize({ width: 320, height: 700 })
   await expect(transcript).toHaveCSS('width', '292px')
-  await expect(status.locator('[data-status-field="profile"]')).toBeHidden()
+  await expect(status).toBeHidden()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
 
   const prompt = page.getByRole('textbox', { name: 'Terminal command' })

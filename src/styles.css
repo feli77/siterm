@@ -307,7 +307,7 @@ a:focus-visible {
 
 @media (max-width: 640px) {
   .terminal-session { font-size: 14px; line-height: 1.72; }
-  .transcript { width: calc(100% - 28px); padding: 32px 0 124px; }
+  .transcript { width: calc(100% - 28px); padding: 32px 0 72px; }
   .boot-sequence { padding-bottom: 32px; }
   .boot-sequence [data-boot="full"] { display: none; }
   .boot-sequence [data-boot="compact"] { display: block; font-size: clamp(12px, 4vw, 15px); }
@@ -324,7 +324,7 @@ a:focus-visible {
   .command-chip, .inline-command, .help-row button, .post-title-command, .tag-cloud button, .profile-option { align-items: center; }
   .command-chip, .inline-command, .tag-cloud button, .profile-option { display: inline-flex; padding-block: 10px; }
 
-  .status-line { gap: 9px; padding-inline: 9px; }
+  .status-line { display: none; }
   .status-session { margin-left: -9px; padding-inline: 9px; }
   .status-wide { display: none; }
   .status-compact { display: inline; }
@@ -343,20 +343,7 @@ a:focus-visible {
   .contact-list a { grid-template-columns: 8ch minmax(0, 1fr); }
 }
 
-@media (max-width: 370px) {
-  .status-profile { display: none; }
-}
-
 @media (max-width: 640px), (pointer: coarse) {
   .command-chip, .inline-command, .help-row button, .post-title-command, .tag-cloud button, .profile-option { min-height: 44px; touch-action: manipulation; }
   .post-title-command { white-space: normal; }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .block-cursor { animation: cursor-blink 1s steps(1, end) infinite; }
-}
-
-@keyframes cursor-blink {
-  0%, 48% { opacity: .78; }
-  49%, 100% { opacity: 0; }
 }

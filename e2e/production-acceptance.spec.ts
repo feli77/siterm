@@ -37,22 +37,25 @@ test('passes the complete responsive production matrix without clipping or runti
   await runCommand(page, 'posts')
   await runCommand(page, 'open 1')
 
-  const status = page.getByRole('contentinfo', { name: /Terminal session status/ })
+  const status = page.locator('.status-line')
   const article = page.getByRole('article', { name: 'Software That Leaves Room' })
 
   for (const width of acceptanceWidths) {
     await test.step(`${width}px`, async () => {
       await page.setViewportSize({ width, height: 900 })
 
-      await expect(status).toHaveCSS('height', '28px')
+      if (width > 640) {
+        await expect(status).toBeVisible()
+        await expect(status).toHaveCSS('height', '28px')
+      } else {
+        await expect(status).toBeHidden()
+      }
       await expect(page.locator('[data-boot="full"]')).toBeVisible({ visible: width > 640 })
       await expect(page.locator('[data-boot="compact"]')).toBeVisible({ visible: width <= 640 })
       await expect(page.locator('.posts-table')).toBeVisible({ visible: width > 640 })
       await expect(page.locator('.posts-priority')).toBeVisible({ visible: width <= 640 })
       if (width > 640) {
         await expect(status.locator('[data-status-field="profile"]')).toBeVisible()
-      } else if (width <= 370) {
-        await expect(status.locator('[data-status-field="profile"]')).toBeHidden()
       }
 
       const geometry = await page.evaluate(() => {
@@ -65,10 +68,13 @@ test('passes the complete responsive production matrix without clipping or runti
         const readableMeasure = measure.getBoundingClientRect().width
         measure.remove()
 
+        const statusVisible = getComputedStyle(statusLine).display !== 'none'
         const statusBounds = statusLine.getBoundingClientRect()
         const fields = [...statusLine.querySelectorAll<HTMLElement>('[data-status-field]')]
-        const visibleFields = fields.filter((field) => getComputedStyle(field).display !== 'none')
-        const retainedFieldsFit = visibleFields
+        const visibleFields = statusVisible
+          ? fields.filter((field) => getComputedStyle(field).display !== 'none')
+          : []
+        const retainedFieldsFit = !statusVisible || visibleFields
           .every((field) => {
             const bounds = field.getBoundingClientRect()
             return bounds.left >= statusBounds.left && bounds.right <= statusBounds.right
@@ -80,6 +86,7 @@ test('passes the complete responsive production matrix without clipping or runti
           articleWidth: articleOutput.getBoundingClientRect().width,
           transcriptWidth: transcript.getBoundingClientRect().width,
           readableMeasure,
+          statusVisible,
           retainedFieldsFit,
           visibleStatusFields: visibleFields.map((field) => field.dataset.statusField),
         }
@@ -90,10 +97,12 @@ test('passes the complete responsive production matrix without clipping or runti
       if (width > 640) {
         expect(geometry.articleWidth).toBeLessThanOrEqual(geometry.readableMeasure + 1)
       }
+      expect(geometry.statusVisible).toBe(width > 640)
       expect(geometry.retainedFieldsFit).toBe(true)
-      expect(geometry.visibleStatusFields).toContain('session')
-      if (!geometry.visibleStatusFields.includes('location')) {
-        expect(geometry.visibleStatusFields).not.toContain('time')
+      if (width > 640) {
+        expect(geometry.visibleStatusFields).toContain('session')
+      } else {
+        expect(geometry.visibleStatusFields).toEqual([])
       }
       await expect(article.getByText('2026-08-18', { exact: true })).toBeVisible()
     })
@@ -185,7 +194,7 @@ test('retains content and controls under 200% layout zoom and text-spacing press
   expect(pressureResult.overlappingCommandTargets).toEqual([])
 })
 
-test('keeps the flow prompt and Status line inside a reduced visual viewport', async ({
+test('keeps the flow prompt inside a reduced visual viewport without a compact Status line', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 800 })
@@ -200,15 +209,11 @@ test('keeps the flow prompt and Status line inside a reduced visual viewport', a
   await cdp.send('Emulation.setPageScaleFactor', { pageScaleFactor: 2 })
 
   await expect.poll(() => page.evaluate(() => visualViewport?.scale)).toBe(2)
-  await expect.poll(() => page.evaluate(() => {
-    const viewportBottom = visualViewport!.offsetTop + visualViewport!.height
-    const status = document.querySelector<HTMLElement>('.status-line')!
-    return Math.abs(status.getBoundingClientRect().bottom - viewportBottom)
-  })).toBeLessThanOrEqual(1)
+  await expect(page.locator('.status-line')).toBeHidden()
   await expect.poll(() => page.evaluate(() => {
     const promptForm = document.querySelector<HTMLElement>('[data-prompt]')!
-    const status = document.querySelector<HTMLElement>('.status-line')!
-    return promptForm.getBoundingClientRect().bottom <= status.getBoundingClientRect().top
+    const viewportBottom = visualViewport!.offsetTop + visualViewport!.height
+    return promptForm.getBoundingClientRect().bottom <= viewportBottom
   })).toBe(true)
 
   const keyboardGeometry = await page.evaluate(() => {
@@ -218,13 +223,15 @@ test('keeps the flow prompt and Status line inside a reduced visual viewport', a
       promptCount: document.querySelectorAll('[data-prompt]').length,
       promptPosition: getComputedStyle(promptForm).position,
       promptBottom: promptForm.getBoundingClientRect().bottom,
-      statusTop: status.getBoundingClientRect().top,
+      viewportBottom: visualViewport!.offsetTop + visualViewport!.height,
+      statusDisplay: getComputedStyle(status).display,
     }
   })
 
   expect(keyboardGeometry.promptCount).toBe(1)
   expect(keyboardGeometry.promptPosition).toBe('static')
-  expect(keyboardGeometry.promptBottom).toBeLessThanOrEqual(keyboardGeometry.statusTop)
+  expect(keyboardGeometry.promptBottom).toBeLessThanOrEqual(keyboardGeometry.viewportBottom)
+  expect(keyboardGeometry.statusDisplay).toBe('none')
 })
 
 test('exposes one logical keyboard and assistive-technology journey', async ({ page }) => {
