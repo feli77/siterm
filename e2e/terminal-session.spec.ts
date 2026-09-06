@@ -199,13 +199,22 @@ test('uses approved desktop and compact geometry without horizontal overflow', a
 
 test('animates only the block cursor and honors reduced motion', async ({ page }) => {
   await page.goto('/')
-  const animated = await page.locator('body *').evaluateAll((nodes) =>
-    nodes
+  const motion = await page.locator('body *').evaluateAll((nodes) => ({
+    animated: nodes
       .filter((node) => getComputedStyle(node).animationName !== 'none')
       .map((node) => node.getAttribute('data-cursor')),
-  )
-  expect(animated).toEqual([''])
+    transitioned: nodes
+      .filter((node) => getComputedStyle(node).transitionDuration !== '0s')
+      .map((node) => node.tagName),
+    scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
+  }))
+  expect(motion).toEqual({
+    animated: [''],
+    transitioned: [],
+    scrollBehavior: 'auto',
+  })
 
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(page.locator('[data-cursor]')).toHaveCSS('animation-name', 'none')
+  await expect(page.locator('[data-cursor]')).toHaveCSS('opacity', '0.78')
 })

@@ -225,7 +225,51 @@ test('keeps the terminal session working when profile storage reads and writes f
   await expect(page.getByText('profile switched to mono.', { exact: true })).toBeVisible()
 })
 
+test('keeps meaningful help text at WCAG AA contrast in every profile', async ({ page }) => {
+  await page.goto('/')
+  const prompt = page.getByRole('textbox', { name: 'Terminal command' })
+  await prompt.fill('help')
+  await prompt.press('Enter')
+
+  const aliasCell = page
+    .getByRole('table', { name: 'read commands' })
+    .getByRole('row')
+    .first()
+    .locator('td')
+    .last()
+
+  for (const profile of ['amber', 'green', 'mono']) {
+    await prompt.fill(`theme ${profile}`)
+    await prompt.press('Enter')
+
+    const colors = await aliasCell.evaluate((node) => {
+      const text = getComputedStyle(node).color
+      const background = getComputedStyle(document.querySelector('[data-terminal-session]')!)
+        .backgroundColor
+      return { text, background }
+    })
+    expect(contrastRatio(colors.text, colors.background)).toBeGreaterThanOrEqual(4.5)
+  }
+})
+
 function hexToRgb(hex: string) {
   const value = Number.parseInt(hex.slice(1), 16)
   return `rgb(${value >> 16}, ${(value >> 8) & 255}, ${value & 255})`
+}
+
+function contrastRatio(foreground: string, background: string) {
+  const luminance = (color: string) => {
+    const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number)
+    const linear = channels.map((channel) => {
+      const normalized = channel / 255
+      return normalized <= 0.04045
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+  }
+
+  const lighter = Math.max(luminance(foreground), luminance(background))
+  const darker = Math.min(luminance(foreground), luminance(background))
+  return (lighter + 0.05) / (darker + 0.05)
 }

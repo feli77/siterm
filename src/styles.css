@@ -231,7 +231,7 @@ a:focus-visible {
 .help-row th, .help-row td { padding: 3px 16px 3px 0; vertical-align: baseline; }
 .help-command { width: 30%; font-weight: 400; }
 .help-row button { min-width: 0; padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-align: left; }
-.help-aliases { width: 18ch; color: var(--faint); }
+.help-aliases { width: 18ch; color: var(--muted); }
 .help-grid code, .output-footnote code { color: var(--accent); font: inherit; }
 .help-row td:not(.help-aliases), .output-footnote { color: var(--muted); }
 
@@ -324,7 +324,7 @@ a:focus-visible {
   .prompt-form input { font-size: 16px; }
 
   .command-chip, .inline-command, .help-row button, .post-title-command, .tag-cloud button, .profile-option { align-items: center; }
-  .command-chip, .inline-command, .tag-cloud button, .profile-option { display: inline-flex; margin-block: -10px; padding-block: 10px; }
+  .command-chip, .inline-command, .tag-cloud button, .profile-option { display: inline-flex; padding-block: 10px; }
 
   .status-line { gap: 9px; padding-inline: 9px; }
   .status-session { margin-left: -9px; padding-inline: 9px; }
