@@ -15,6 +15,7 @@ import {
   browsePostsError,
   completeCommand,
   parseCommand,
+  signMessageError,
   type CommandResult,
   type ErrorResult,
 } from './lib/commands'
@@ -47,18 +48,34 @@ const compactBootMark = String.raw` ___ ___ _____
 \__ \| |  | |
 |___/___| |_|`
 
-const helpRows = [
-  ['about', 'a short system profile'],
-  ['posts [tag]', 'browse notes, optionally by tag'],
-  ['open <n|slug>', 'read an article'],
-  ['tags', 'list the archive by subject'],
-  ['guestbook', 'read locally stored messages'],
-  ['sign "message"', 'leave a note in this browser'],
-  ['theme [name]', 'change the Terminal profile'],
-  ['contact', 'open communication channels'],
-  ['history', 'show commands from this session'],
-  ['clear', 'clear the terminal output'],
-  ['home', 'print the welcome screen again'],
+const rootDocumentTitle = `siterm — ${siteConfig.name}'s terminal`
+
+const helpGroups = [
+  {
+    name: 'read',
+    commands: [
+      ['posts [tag]', 'browse notes, optionally by tag', 'ls'],
+      ['open <n|slug>', 'read an article', 'read, cat'],
+      ['tags', 'list the archive by subject', ''],
+    ],
+  },
+  {
+    name: 'session',
+    commands: [
+      ['theme [name]', 'change the Terminal profile', ''],
+      ['history', 'show commands from this session', ''],
+      ['clear', 'clear the terminal output', ''],
+      ['home', 'print the welcome screen again', ''],
+    ],
+  },
+  {
+    name: 'connect',
+    commands: [
+      ['guestbook', 'read locally stored messages', ''],
+      ['sign "message"', 'leave a note in this browser', ''],
+      ['contact', 'open communication channels', 'github'],
+    ],
+  },
 ] as const
 
 function routeResult(): CommandResult | undefined {
@@ -146,7 +163,7 @@ function App() {
     if (result.kind === 'post') {
       document.title = `${result.post.title} — ${siteConfig.name}`
     } else {
-      document.title = `siterm — ${siteConfig.name}'s terminal`
+      document.title = rootDocumentTitle
     }
     setEntries((current) => [
       ...current,
@@ -189,6 +206,7 @@ function App() {
 
     let settleTimer = 0
     const syncViewport = () => {
+      const promptWasFocused = document.activeElement === inputRef.current
       const bottomInset = Math.max(
         0,
         window.innerHeight - viewport.height - viewport.offsetTop,
@@ -196,7 +214,7 @@ function App() {
       document.documentElement.style.setProperty('--viewport-bottom', `${bottomInset}px`)
       window.clearTimeout(settleTimer)
       settleTimer = window.setTimeout(() => {
-        if (document.activeElement === inputRef.current) {
+        if (promptWasFocused && document.activeElement === inputRef.current) {
           promptRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
         }
       }, 120)
@@ -238,6 +256,7 @@ function App() {
       if (result.kind === 'clear') {
         setEntries([])
         window.history.pushState({}, '', '#/')
+        document.title = rootDocumentTitle
         return
       }
 
@@ -250,23 +269,19 @@ function App() {
         entryTheme = result.selected
       }
 
-      if (result.kind === 'sign' && result.message) {
+      if (result.kind === 'sign') {
         const message = result.message
           .replace(/[\u0000-\u001f\u007f]/g, '')
           .replace(/\s+/g, ' ')
           .trim()
         if (!message) {
-          finalResult = {
-            kind: 'text',
-            text: 'message is empty after removing control characters',
-            tone: 'error',
-          }
+          finalResult = signMessageError(
+            'message is empty after removing control characters',
+          )
         } else if (message.length > 160) {
-          finalResult = {
-            kind: 'text',
-            text: `message is ${message.length} characters; the guestbook limit is 160`,
-            tone: 'error',
-          }
+          finalResult = signMessageError(
+            `message is ${message.length} characters; the guestbook limit is 160`,
+          )
         } else {
           const entry = saveGuestbookEntry(message)
           entryGuestbook = [entry, ...guestbook]
@@ -280,7 +295,7 @@ function App() {
         document.title = `${result.post.title} — ${siteConfig.name}`
       } else if (result.kind === 'welcome') {
         window.history.pushState({}, '', '#/')
-        document.title = `siterm — ${siteConfig.name}'s terminal`
+        document.title = rootDocumentTitle
       }
 
       setEntries((current) => [
@@ -584,22 +599,18 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
     case 'guestbook':
       return <GuestbookOutput entries={guestbook} onRun={onRun} />
     case 'sign':
-      return result.message ? (
-        <Notice tone="success">entry saved locally. thanks for leaving a trace.</Notice>
-      ) : (
-        <Notice tone="error">usage: sign "your message"</Notice>
-      )
+      return <Notice tone="success">entry saved locally. thanks for leaving a trace.</Notice>
     case 'contact':
       return <ContactOutput />
     case 'history':
       return (
-        <div className="output-block history-list">
+        <ol className="output-block history-list">
           {result.commands.map((command, index) => (
-            <p key={`${command}-${index}`}>
+            <li key={`${command}-${index}`}>
               <span>{String(index + 1).padStart(3, ' ')}</span> {command}
-            </p>
+            </li>
           ))}
-        </div>
+        </ol>
       )
     case 'text':
       return <Notice tone={result.tone}>{result.text}</Notice>
@@ -608,10 +619,10 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
     case 'unknown':
       return (
         <div className="output-block notice notice-error">
-          <p>command not found: {result.command}</p>
+          <p>error: command not found: {result.command}</p>
           {result.suggestion ? (
             <p>
-              did you mean{' '}
+              hint: did you mean{' '}
               <button className="inline-command" type="button" onClick={() => onRun(result.suggestion!)}>
                 {result.suggestion}
               </button>
@@ -619,7 +630,7 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
             </p>
           ) : (
             <p>
-              run <button className="inline-command" type="button" onClick={() => onRun('help')}>help</button> to see available commands.
+              hint: run <button className="inline-command" type="button" onClick={() => onRun('help')}>help</button> to see available commands
             </p>
           )}
         </div>
@@ -676,15 +687,37 @@ function HelpOutput({ onRun }: { onRun: (command: string) => void }) {
     <section className="output-block panel-output">
       <OutputHeading eyebrow="manual / index" title="Available commands" />
       <div className="help-grid">
-        {helpRows.map(([command, description]) => (
-          <button key={command} type="button" onClick={() => onRun(command.split(' ')[0])}>
-            <code>{command}</code>
-            <span>{description}</span>
-          </button>
-        ))}
+        {helpGroups.map((group) => {
+          const headingId = `help-${group.name}`
+          return (
+            <section key={group.name} className="help-group" role="group" aria-labelledby={headingId}>
+              <h3 id={headingId}>{group.name}</h3>
+              <table className="help-table" aria-label={`${group.name} commands`}>
+                <tbody>
+                  {group.commands.map(([command, description, aliases]) => (
+                    <tr className="help-row" key={command}>
+                      <th className="help-command" scope="row">
+                        <button type="button" onClick={() => onRun(command.split(' ')[0])}>
+                          <code>{command}</code>
+                        </button>
+                      </th>
+                      <td>{description}</td>
+                      <td className="help-aliases">
+                        {aliases ? <small><span>alias: </span><span>{aliases}</span></small> : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )
+        })}
       </div>
-      <p className="output-footnote">
-        aliases for the homesick: <code>ls</code>, <code>cat</code>, <code>man</code>, <code>pwd</code>, <code>neofetch</code>
+      <p
+        className="output-footnote"
+        aria-label="Arrow Up and Arrow Down for history, Tab to complete, slash to focus the prompt"
+      >
+        ↑/↓ history · Tab complete · / focus prompt
       </p>
     </section>
   )
@@ -943,7 +976,7 @@ function ContactOutput() {
         <a href={`mailto:${siteConfig.email}`}>
           <span>email</span><strong>{siteConfig.email}</strong><span>↗</span>
         </a>
-        <a href={siteConfig.github} target="_blank" rel="noreferrer">
+        <a href={siteConfig.github}>
           <span>github</span><strong>{siteConfig.github.replace('https://', '')}</strong><span>↗</span>
         </a>
       </div>

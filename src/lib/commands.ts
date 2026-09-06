@@ -18,6 +18,13 @@ export const commandNames = [
   'echo',
   'clear',
   'home',
+  'ls',
+  'read',
+  'cat',
+  'man',
+  'pwd',
+  'neofetch',
+  'sudo',
 ] as const
 
 export type CommandName = (typeof commandNames)[number]
@@ -44,7 +51,7 @@ export type CommandResult =
   | { kind: 'tags' }
   | { kind: 'theme'; selected?: ThemeName; invalid?: string }
   | { kind: 'guestbook' }
-  | { kind: 'sign'; message?: string }
+  | { kind: 'sign'; message: string }
   | { kind: 'contact' }
   | { kind: 'history'; commands: readonly string[] }
   | { kind: 'text'; text: string; tone?: 'muted' | 'success' | 'error' }
@@ -62,6 +69,18 @@ export function browsePostsError(cause: string): ErrorResult {
     kind: 'error',
     cause,
     hint: { before: 'run ', command: 'posts', after: ' to browse' },
+  }
+}
+
+export function signMessageError(cause: string): ErrorResult {
+  return {
+    kind: 'error',
+    cause,
+    hint: {
+      before: 'try ',
+      command: 'sign "hello from the quiet web"',
+      after: '',
+    },
   }
 }
 
@@ -100,8 +119,9 @@ function editDistance(left: string, right: string): number {
 }
 
 export function suggestCommand(input: string): string | undefined {
+  const normalized = input.trim().toLowerCase()
   const ranked = commandNames
-    .map((command) => ({ command, distance: editDistance(input, command) }))
+    .map((command) => ({ command, distance: editDistance(normalized, command) }))
     .sort((a, b) => a.distance - b.distance)
 
   return ranked[0]?.distance <= 2 ? ranked[0].command : undefined
@@ -151,8 +171,12 @@ export function parseCommand(rawInput: string, context: ParseContext): CommandRe
     }
     case 'guestbook':
       return { kind: 'guestbook' }
-    case 'sign':
-      return { kind: 'sign', message: args.join(' ').trim() || undefined }
+    case 'sign': {
+      const message = args.join(' ').trim()
+      return message
+        ? { kind: 'sign', message }
+        : signMessageError('sign needs a message')
+    }
     case 'contact':
       return { kind: 'contact' }
     case 'history':
