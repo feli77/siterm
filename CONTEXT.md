@@ -21,7 +21,7 @@ A named, coherent foreground-and-background color configuration for the terminal
 _Avoid_: Theme skin, palette card, color picker
 
 **Status line**:
-The single persistent summary row at the bottom of the terminal session, separate from the transcript.
+The persistent summary row at the bottom of a desktop terminal session, separate from the transcript and omitted on compact displays.
 _Avoid_: Footer, toolbar, application status bar
 
 **Boot sequence**:
