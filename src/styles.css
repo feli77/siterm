@@ -129,12 +129,15 @@ a:focus-visible {
   color: var(--accent);
   background: transparent;
   border: 0;
-  border-bottom: 1px dotted currentColor;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   text-align: left;
 }
 
 .command-chip:hover,
-.inline-command:hover { color: var(--background); background: var(--accent); border-bottom-color: transparent; }
+.inline-command:hover { background: transparent; text-decoration-thickness: 2px; }
 
 .exchange {
   display: grid;
@@ -222,7 +225,8 @@ a:focus-visible {
 .help-table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; }
 .help-row th, .help-row td { padding: 3px 16px 3px 0; vertical-align: baseline; }
 .help-command { width: 30%; font-weight: 400; }
-.help-row button { min-width: 0; padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-align: left; }
+.help-row button { min-width: 0; padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-align: left; text-decoration-line: underline; text-decoration-style: solid; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.help-row button:hover { background: transparent; text-decoration-thickness: 2px; }
 .help-aliases { width: 18ch; color: var(--muted); }
 .help-grid code, .output-footnote code { color: var(--accent); font: inherit; }
 .help-row td:not(.help-aliases), .output-footnote { color: var(--muted); }
@@ -248,8 +252,8 @@ a:focus-visible {
 .posts-table tbody tr { border-bottom: 1px dashed var(--rule); }
 .posts-table td { color: var(--muted); font-size: 11px; }
 .post-title-cell { color: var(--ink) !important; font-size: inherit !important; }
-.post-title-command { min-width: 0; max-width: 100%; margin: 0; padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-align: left; text-decoration-line: underline; text-decoration-style: dotted; text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.post-title-command:hover { color: var(--background); background: var(--accent); }
+.post-title-command { min-width: 0; max-width: 100%; margin: 0; padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-align: left; text-decoration-line: underline; text-decoration-style: solid; text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.post-title-command:hover { background: transparent; text-decoration-thickness: 2px; }
 .post-tags { display: block; min-width: 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
 .posts-priority { display: none; margin: 0; padding: 0; list-style: none; }
 .empty-result { margin-top: 14px; }
@@ -273,7 +277,8 @@ a:focus-visible {
 
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0; padding: 0; list-style: none; }
 .tag-cloud li { min-width: 0; max-width: 100%; }
-.tag-cloud button, .profile-option { padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; border-bottom: 1px dotted currentColor; }
+.tag-cloud button, .profile-option { padding: 0; cursor: pointer; color: var(--accent); background: transparent; border: 0; text-decoration-line: underline; text-decoration-style: solid; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tag-cloud button:hover, .profile-option:hover { background: transparent; text-decoration-thickness: 2px; }
 .tag-cloud button { min-width: 0; max-width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; }
 .tag-cloud sup { margin-left: .5ch; color: var(--muted); }
 .profile-table { width: 100%; max-width: 50ch; border-collapse: collapse; text-align: left; }
@@ -292,7 +297,8 @@ a:focus-visible {
 .guestbook-entry > p { margin: 8px 0 0 28px; overflow-wrap: anywhere; }
 .guestbook-summary { margin: 14px 0 0; color: var(--muted); }
 .signed-entry-output > p:first-child { margin-top: 0; }
-.contact-list a { display: grid; grid-template-columns: 10ch minmax(0, 1fr) auto; gap: 12px; padding: 7px 0; color: var(--ink); border-bottom: 1px dashed var(--rule); text-decoration: none; }
+.contact-list a { display: grid; grid-template-columns: 10ch minmax(0, 1fr) auto; gap: 12px; padding: 7px 0; color: var(--ink); background: transparent; border-bottom: 1px dashed var(--rule); text-decoration-line: underline; text-decoration-style: solid; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.contact-list a:hover { background: transparent; text-decoration-thickness: 2px; }
 .contact-list a > span:first-child, .history-list span, .notice { color: var(--muted); }
 .history-list { margin: 0; padding: 0; list-style: none; }
 .history-list li, .notice p { margin: 4px 0; }

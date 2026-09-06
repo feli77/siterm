@@ -92,7 +92,7 @@ test('opens a title through the parser and announces only the new article result
     exact: true,
   })
 
-  await expect(title).toHaveCSS('text-decoration-style', 'dotted')
+  await expect(title).toHaveCSS('text-decoration-style', 'solid')
   await title.click()
   await expect(title).toBeFocused()
   await expect(page.getByText(
