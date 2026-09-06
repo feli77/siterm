@@ -22,6 +22,7 @@ import {
 import {
   loadGuestbook,
   normalizeGuestbookMessage,
+  orderGuestbookEntries,
   saveGuestbookEntry,
 } from './lib/guestbook'
 import {
@@ -285,7 +286,7 @@ function App() {
           )
         } else {
           const entry = saveGuestbookEntry(message)
-          entryGuestbook = [entry, ...guestbook]
+          entryGuestbook = orderGuestbookEntries([entry, ...guestbook])
           setGuestbook(entryGuestbook)
           finalResult = { kind: 'sign', message, entry }
         }

@@ -75,6 +75,31 @@ test('normalizes a signature, shows it immediately, and preserves it across relo
   await expect(guestbook.getByRole('listitem').first()).toContainText('you@this-browser')
 })
 
+test('keeps the current-session Guestbook newest first after signing', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate((key) => {
+    localStorage.setItem(key, JSON.stringify([{
+      id: 'future-entry',
+      author: 'clock@elsewhere',
+      message: 'later-dated entry',
+      date: '2999-12-31',
+    }]))
+  }, storageKey)
+  await page.reload()
+
+  const prompt = page.getByRole('textbox', { name: 'Terminal command' })
+  await prompt.fill('sign "today entry"')
+  await prompt.press('Enter')
+  await prompt.fill('guestbook')
+  await prompt.press('Enter')
+
+  const entries = page
+    .getByRole('region', { name: 'Command exchange: guestbook' })
+    .getByRole('listitem')
+  await expect(entries.first()).toContainText('later-dated entry')
+  await expect(entries.nth(1)).toContainText('today entry')
+})
+
 test('accepts 159 and 160 normalized characters and rejects 161', async ({ page }) => {
   await page.goto('/')
   const prompt = page.getByRole('textbox', { name: 'Terminal command' })

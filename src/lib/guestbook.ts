@@ -24,15 +24,19 @@ export function normalizeGuestbookMessage(message: string): string {
     .trim()
 }
 
+export function orderGuestbookEntries(
+  entries: readonly GuestbookEntry[],
+): GuestbookEntry[] {
+  return [...entries].sort((left, right) => right.date.localeCompare(left.date))
+}
+
 export function loadGuestbook(): GuestbookEntry[] {
   if (typeof window === 'undefined') return [...sampleEntries]
 
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY)
     const localEntries = saved ? (JSON.parse(saved) as GuestbookEntry[]) : []
-    return [...localEntries, ...sampleEntries].sort((left, right) =>
-      right.date.localeCompare(left.date),
-    )
+    return orderGuestbookEntries([...localEntries, ...sampleEntries])
   } catch {
     return [...sampleEntries]
   }
@@ -49,7 +53,10 @@ export function saveGuestbookEntry(message: string): GuestbookEntry {
   try {
     const current = window.localStorage.getItem(STORAGE_KEY)
     const parsed = current ? (JSON.parse(current) as GuestbookEntry[]) : []
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...parsed]))
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(orderGuestbookEntries([entry, ...parsed])),
+    )
   } catch {
     // The entry still appears for this session when storage is unavailable.
   }
