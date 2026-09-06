@@ -280,8 +280,13 @@ a:focus-visible {
 .profile-guidance { margin: 14px 0 0; }
 .profile-guidance code { color: var(--accent); font: inherit; }
 
-.guestbook-list blockquote { max-width: 68ch; margin: 14px 0; padding: 0 0 14px 2ch; border-bottom: 1px dashed var(--rule); border-left: 1px solid var(--rule); }
-.guestbook-list footer { display: flex; gap: 16px; justify-content: space-between; color: var(--muted); font-size: 11px; }
+.guestbook-list { max-width: 70ch; margin: 14px 0 0; padding: 0; list-style: none; }
+.guestbook-list li { padding: 14px 0 18px; border-bottom: 1px dashed var(--rule); }
+.guestbook-entry > header { color: var(--muted); font-size: 11px; }
+.guestbook-list .guestbook-entry > header > span:first-child { color: var(--faint); }
+.guestbook-entry > p { margin: 8px 0 0 28px; overflow-wrap: anywhere; }
+.guestbook-summary { margin: 14px 0 0; color: var(--muted); }
+.signed-entry-output > p:first-child { margin-top: 0; }
 .contact-list a { display: grid; grid-template-columns: 10ch minmax(0, 1fr) auto; gap: 12px; padding: 7px 0; color: var(--ink); border-bottom: 1px dashed var(--rule); text-decoration: none; }
 .contact-list a > span:first-child, .history-list span, .notice { color: var(--muted); }
 .history-list { margin: 0; padding: 0; list-style: none; }

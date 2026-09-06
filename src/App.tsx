@@ -19,7 +19,11 @@ import {
   type CommandResult,
   type ErrorResult,
 } from './lib/commands'
-import { loadGuestbook, saveGuestbookEntry } from './lib/guestbook'
+import {
+  loadGuestbook,
+  normalizeGuestbookMessage,
+  saveGuestbookEntry,
+} from './lib/guestbook'
 import {
   terminalProfiles,
   themeNames,
@@ -270,10 +274,7 @@ function App() {
       }
 
       if (result.kind === 'sign') {
-        const message = result.message
-          .replace(/[\u0000-\u001f\u007f]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim()
+        const message = normalizeGuestbookMessage(result.message)
         if (!message) {
           finalResult = signMessageError(
             'message is empty after removing control characters',
@@ -286,7 +287,7 @@ function App() {
           const entry = saveGuestbookEntry(message)
           entryGuestbook = [entry, ...guestbook]
           setGuestbook(entryGuestbook)
-          finalResult = { kind: 'sign', message }
+          finalResult = { kind: 'sign', message, entry }
         }
       }
 
@@ -599,7 +600,12 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
     case 'guestbook':
       return <GuestbookOutput entries={guestbook} onRun={onRun} />
     case 'sign':
-      return <Notice tone="success">entry saved locally. thanks for leaving a trace.</Notice>
+      return result.entry ? (
+        <section className="output-block signed-entry-output">
+          <p className="success-text">entry added to this session. thanks for leaving a trace.</p>
+          <GuestbookEntryOutput entry={result.entry} />
+        </section>
+      ) : null
     case 'contact':
       return <ContactOutput />
     case 'history':
@@ -944,27 +950,51 @@ function TerminalProfilesOutput({
 }
 
 function GuestbookOutput({ entries, onRun }: { entries: readonly GuestbookEntry[]; onRun: (command: string) => void }) {
+  const visibleEntries = entries.slice(0, 6)
+
   return (
     <section className="output-block panel-output">
       <OutputHeading eyebrow="~/guestbook" title="Traces from visitors" />
       <p className="guestbook-note">This static demo stores new notes only in your browser.</p>
-      <div className="guestbook-list">
-        {entries.slice(0, 6).map((entry) => (
-          <blockquote key={entry.id}>
-            <p>{entry.message}</p>
-            <footer><span>— {entry.author}</span><time dateTime={entry.date}>{entry.date}</time></footer>
-          </blockquote>
-        ))}
-      </div>
-      <div className="command-suggestions">
-        <span>leave a trace:</span>
-        <CommandButton
-          command={'sign "hello from the quiet web"'}
-          onRun={onRun}
-          label={'sign "your message"'}
-        />
-      </div>
+      {visibleEntries.length > 0 ? (
+        <ol className="guestbook-list" aria-label="Guestbook entries">
+          {visibleEntries.map((entry, index) => (
+            <li key={entry.id}>
+              <GuestbookEntryOutput entry={entry} number={index + 1} />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+      <p className="guestbook-summary">
+        {entries.length} local {entries.length === 1 ? 'entry' : 'entries'}{' '}
+        <span aria-hidden="true">·</span>{' '}
+        <CommandButton command={'sign "hello"'} onRun={onRun} />
+      </p>
     </section>
+  )
+}
+
+function GuestbookEntryOutput({
+  entry,
+  number,
+}: {
+  entry: GuestbookEntry
+  number?: number
+}) {
+  return (
+    <article
+      className="guestbook-entry"
+      aria-label={`Guestbook entry by ${entry.author}`}
+    >
+      <header>
+        {number === undefined ? null : (
+          <><span>{String(number).padStart(2, '0')}</span>{' '}</>
+        )}
+        {entry.author} <span aria-hidden="true">·</span>{' '}
+        <time dateTime={entry.date}>{entry.date}</time>
+      </header>
+      <p>{entry.message}</p>
+    </article>
   )
 }
 

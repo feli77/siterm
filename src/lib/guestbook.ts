@@ -17,13 +17,22 @@ const sampleEntries: readonly GuestbookEntry[] = [
   },
 ]
 
+export function normalizeGuestbookMessage(message: string): string {
+  return message
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function loadGuestbook(): GuestbookEntry[] {
   if (typeof window === 'undefined') return [...sampleEntries]
 
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY)
     const localEntries = saved ? (JSON.parse(saved) as GuestbookEntry[]) : []
-    return [...localEntries, ...sampleEntries]
+    return [...localEntries, ...sampleEntries].sort((left, right) =>
+      right.date.localeCompare(left.date),
+    )
   } catch {
     return [...sampleEntries]
   }

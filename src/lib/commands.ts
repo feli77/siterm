@@ -1,5 +1,5 @@
 import { findPost } from '../content/posts'
-import { themeNames, type Post, type ThemeName } from '../types'
+import { themeNames, type GuestbookEntry, type Post, type ThemeName } from '../types'
 
 export const commandNames = [
   'help',
@@ -51,7 +51,7 @@ export type CommandResult =
   | { kind: 'tags' }
   | { kind: 'theme'; selected?: ThemeName; invalid?: string }
   | { kind: 'guestbook' }
-  | { kind: 'sign'; message: string }
+  | { kind: 'sign'; message: string; entry?: GuestbookEntry }
   | { kind: 'contact' }
   | { kind: 'history'; commands: readonly string[] }
   | { kind: 'text'; text: string; tone?: 'muted' | 'success' | 'error' }
