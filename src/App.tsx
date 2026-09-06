@@ -761,6 +761,7 @@ function AboutOutput({ onRun }: { onRun: (command: string) => void }) {
 
 function PostsOutput({ tag, onRun }: { tag?: string; onRun: (command: string) => void }) {
   const filtered = tag ? posts.filter((post) => post.tags.includes(tag)) : posts
+  const summary = `${filtered.length} ${filtered.length === 1 ? 'post' : 'posts'} · newest first`
 
   return (
     <section className="output-block posts-output">
@@ -768,35 +769,98 @@ function PostsOutput({ tag, onRun }: { tag?: string; onRun: (command: string) =>
         eyebrow={tag ? `~/notes --tag ${tag}` : '~/notes'}
         title={tag ? `Notes tagged “${tag}”` : 'Field notes'}
       />
+      <p className="post-list-summary">
+        {summary} · open with <code>open &lt;n|slug&gt;</code>
+      </p>
       {filtered.length === 0 ? (
-        <div className="empty-result">
-          <p>No posts carry that tag.</p>
-          <CommandButton command="tags" onRun={onRun} />
+        <div className="empty-result notice notice-error">
+          <p>error: no posts tagged “{tag}”</p>
+          <p>
+            hint: run <CommandButton command="tags" onRun={onRun} /> to browse available tags
+          </p>
         </div>
       ) : (
-        <div className="post-list">
-          {filtered.map((post) => {
-            const index = posts.indexOf(post) + 1
-            return (
-              <button key={post.slug} type="button" onClick={() => onRun(`open ${post.slug}`)}>
-                <span className="post-number">{String(index).padStart(2, '0')}</span>
-                <span className="post-summary">
-                  <strong>{post.title}</strong>
-                  <span>{post.excerpt}</span>
-                  <span className="post-tags">{post.tags.map((item) => `#${item}`).join('  ')}</span>
-                </span>
-                <span className="post-meta">
-                  <time dateTime={post.date}>{post.date}</time>
-                  <span>{post.readingTime}</span>
-                  <span className="open-glyph">↗</span>
-                </span>
-              </button>
-            )
-          })}
-        </div>
+        <>
+          <table className="posts-table" aria-label="Published posts">
+            <colgroup>
+              <col className="post-number-column" />
+              <col className="post-date-column" />
+              <col />
+              <col className="post-read-column" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">NO.</th>
+                <th scope="col">DATE</th>
+                <th scope="col">TITLE</th>
+                <th scope="col">READ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((post) => (
+                <PostTableRow key={post.slug} post={post} onRun={onRun} />
+              ))}
+            </tbody>
+          </table>
+          <ol className="posts-priority" aria-label="Published posts">
+            {filtered.map((post) => (
+              <PostPriorityItem key={post.slug} post={post} onRun={onRun} />
+            ))}
+          </ol>
+        </>
       )}
-      <p className="output-footnote">open a note with <code>open 1</code> or select a row.</p>
     </section>
+  )
+}
+
+function postNumber(post: Post): string {
+  return String(posts.indexOf(post) + 1).padStart(2, '0')
+}
+
+function PostTitleButton({ post, onRun }: { post: Post; onRun: (command: string) => void }) {
+  return (
+    <button
+      className="post-title-command"
+      type="button"
+      onClick={() => onRun(`open ${post.slug}`)}
+    >
+      {post.title}
+    </button>
+  )
+}
+
+function PostTableRow({ post, onRun }: { post: Post; onRun: (command: string) => void }) {
+  return (
+    <tr>
+      <td className="post-number">{postNumber(post)}</td>
+      <td><time dateTime={post.date}>{post.date}</time></td>
+      <td className="post-title-cell">
+        <PostTitleButton post={post} onRun={onRun} />
+        <span className="post-tags">{post.tags.map((item) => `#${item}`).join('  ')}</span>
+      </td>
+      <td>{post.readingTime}</td>
+    </tr>
+  )
+}
+
+function PostPriorityItem({ post, onRun }: { post: Post; onRun: (command: string) => void }) {
+  return (
+    <li>
+      <span className="post-number">
+        <span className="sr-only">Number </span>{postNumber(post)}
+      </span>
+      <span className="post-priority-title">
+        <span className="sr-only">Title </span>
+        <PostTitleButton post={post} onRun={onRun} />
+      </span>
+      <span className="post-priority-read">
+        <span className="sr-only">Reading time </span>{post.readingTime}
+      </span>
+      <span className="post-tags">
+        <span className="sr-only">Tags </span>
+        {post.tags.map((item) => `#${item}`).join('  ')}
+      </span>
+    </li>
   )
 }
 
@@ -877,15 +941,21 @@ function TagsOutput({ onRun }: { onRun: (command: string) => void }) {
   return (
     <section className="output-block panel-output">
       <OutputHeading eyebrow="~/notes/tags" title="Subjects in the archive" />
-      <div className="tag-cloud">
+      <ul className="tag-cloud" aria-label="Available tags">
         {Object.entries(counts)
           .sort(([left], [right]) => left.localeCompare(right))
           .map(([tag, count]) => (
-            <button key={tag} type="button" onClick={() => onRun(`posts ${tag}`)}>
-              <span>#{tag}</span><sup>{count}</sup>
-            </button>
+            <li key={tag}>
+              <button
+                type="button"
+                aria-label={`posts ${tag}, ${count} ${count === 1 ? 'post' : 'posts'}`}
+                onClick={() => onRun(`posts ${tag}`)}
+              >
+                <span>#{tag}</span><sup>{count}</sup>
+              </button>
+            </li>
           ))}
-      </div>
+      </ul>
     </section>
   )
 }
