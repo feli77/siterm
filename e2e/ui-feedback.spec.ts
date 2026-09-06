@@ -50,4 +50,5 @@ test('keeps the desktop Status line and removes it from compact screens', async 
 
   await page.setViewportSize({ width: 640, height: 760 })
   await expect(status).toBeHidden()
+  await expect(page.locator('[data-transcript]')).toHaveCSS('padding-bottom', '124px')
 })

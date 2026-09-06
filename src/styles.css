@@ -307,7 +307,7 @@ a:focus-visible {
 
 @media (max-width: 640px) {
   .terminal-session { font-size: 14px; line-height: 1.72; }
-  .transcript { width: calc(100% - 28px); padding: 32px 0 72px; }
+  .transcript { width: calc(100% - 28px); padding: 32px 0 124px; }
   .boot-sequence { padding-bottom: 32px; }
   .boot-sequence [data-boot="full"] { display: none; }
   .boot-sequence [data-boot="compact"] { display: block; font-size: clamp(12px, 4vw, 15px); }
