@@ -1,27 +1,40 @@
 # siterm
 
-一个以终端作为完整交互界面的静态个人博客模板。访客既可以输入命令，也可以点击界面中的命令与文章；所有内容最终构建为普通静态文件。
+[English](./README.md) | [简体中文](./README.zh-CN.md)
 
-## 功能
+A static personal blog template expressed as one continuous, terminal-native interface. Visitors can type commands or activate the same commands directly in the Transcript, while the production build remains a collection of ordinary static files.
 
-- 可执行的终端命令与接近 shell 的别名
-- 文章列表、标签过滤、文章阅读和 hash 深链接
-- 三套 Terminal profile 与本地偏好记忆
-- 命令历史、方向键导航、Tab 补全和拼写建议
-- 响应式桌面/移动端布局与键盘可访问性
-- 浏览器本地留言簿
-- GitHub Pages 自动部署工作流
+[Live demo](https://feli77.github.io/siterm/)
 
-## 本地运行
+## Features
 
-需要 Node.js 22 或更高版本。
+- Executable terminal commands with familiar shell aliases
+- Post browsing, tag filtering, article reading, and hash-based deep links
+- Three Terminal profiles—`amber`, `green`, and `mono`—with local preference persistence
+- Command history, Arrow Up/Down navigation, Tab completion, and typo suggestions
+- Responsive desktop and compact layouts with keyboard-accessible command targets
+- A browser-local Guestbook with safe message normalization
+- Automated Vitest, Playwright, production-build, and GitHub Pages deployment checks
+
+## Requirements
+
+Node.js 24 is recommended and is used by CI. The current Vite toolchain supports Node.js `^20.19.0` or `>=22.12.0`.
+
+## Installation
 
 ```bash
+git clone https://github.com/feli77/siterm.git
+cd siterm
 npm install
+```
+
+## Local development
+
+```bash
 npm run dev
 ```
 
-常用检查：
+Useful checks:
 
 ```bash
 npm test
@@ -30,42 +43,53 @@ npm run build
 npm run preview
 ```
 
-首次运行浏览器测试前，安装 Chromium：`npx playwright install chromium`。
+Install Chromium before running the browser suite for the first time:
 
-## 自定义
+```bash
+npx playwright install chromium
+```
 
-最常修改的文件只有两个：
+## Customization
 
-- `src/config/site.ts`：姓名、简介、所在地、邮箱、GitHub 地址和默认主题。
-- `src/content/posts.ts`：文章元数据和正文区块。
+Most personal customization happens in two files:
 
-可用 Terminal profile 是 `amber`、`green` 和 `mono`，默认值是 `amber`。命令行为集中在 `src/lib/commands.ts`，展示组件在 `src/App.tsx`，视觉样式在 `src/styles.css`。
+- `src/config/site.ts`: name, introduction, location, timezone, contact details, interests, and default Terminal profile.
+- `src/content/posts.ts`: post metadata and ordered article content blocks.
 
-## 命令
+You may also replace `public/favicon.svg`. The command parser lives in `src/lib/commands.ts`, the assembled Terminal session in `src/App.tsx`, and the visual system in `src/styles.css`.
 
-| 命令 | 作用 |
-| --- | --- |
-| `help` | 显示命令手册 |
-| `about` | 查看个人简介 |
-| `posts [tag]` | 浏览全部文章或按标签筛选 |
-| `open <编号或 slug>` | 打开文章 |
-| `tags` | 浏览标签 |
-| `theme [名称]` | 列出或切换 Terminal profile；`theme --list` 也可列出 |
-| `guestbook` | 查看留言簿 |
-| `sign "留言"` | 在当前浏览器中留下留言 |
-| `contact` | 查看联系方式 |
-| `history` | 查看本次会话的命令历史 |
-| `clear` | 清空终端输出 |
-| `home` | 回到欢迎页 |
+The supported Terminal profiles are `amber`, `green`, and `mono`; `amber` is the default.
 
-`ls`、`cat`、`man`、`pwd` 和 `neofetch` 也可以使用。
+## Commands
 
-## 关于静态留言簿
+| Command | Aliases | Result |
+| --- | --- | --- |
+| `help` | `man` | Show the command guide |
+| `about` | `neofetch` | Show the configured owner profile |
+| `posts [tag]` | `ls [tag]` | Browse all posts or filter by tag |
+| `open <number or slug>` | `read`, `cat` | Open an article |
+| `tags` | — | List available tags |
+| `theme [name]` | `theme --list` | List or switch Terminal profiles |
+| `guestbook` | — | Read the local Guestbook |
+| `sign "message"` | — | Leave a message in the current browser |
+| `contact` | `github` | Show configured contact links |
+| `history` | — | Show commands from the current session |
+| `home` | — | Append the welcome output and return to the root route |
+| `clear` | — | Clear visible Transcript output while retaining history |
+| `date` | — | Show the browser-local date and time |
+| `whoami` | — | Show the current visitor identity |
+| `pwd` | — | Show the playful current path |
+| `echo <text>` | — | Echo text into the Transcript |
+| `sudo` | — | Run the permission-denied easter egg |
 
-纯静态站点不能自行保存所有访客共享的数据。模板默认把 `sign` 留言写入访客自己的 `localStorage`，所以它只在同一浏览器中可见。若需要公开共享留言，可以保持 UI 不变，将 `src/lib/guestbook.ts` 替换为 Giscus、GitHub Discussions、Supabase 或其他服务适配器。
+## Static Guestbook behavior
 
-## 部署到 GitHub Pages
+A purely static site cannot store shared visitor data by itself. The default `sign` command writes entries to the visitor's `localStorage`, so those entries are visible only in the same browser. If storage is unavailable, new entries still remain visible for the current session.
 
-仓库包含 `.github/workflows/deploy.yml`。在 GitHub 仓库的 **Settings → Pages → Build and deployment** 中把 Source 设为 **GitHub Actions**，随后推送到 `main` 即会运行测试、构建并部署 `dist/`。
+A public Guestbook requires an external service such as GitHub Discussions, Giscus, Supabase, or another hosted backend. This is not a drop-in replacement of `src/lib/guestbook.ts`: an asynchronous integration must also update the state and command flow in `src/App.tsx`.
 
-Vite 的资源路径使用相对地址，因此用户站点和项目子路径均可部署；文章导航使用 hash，不依赖服务器重写规则。
+## Deploying to GitHub Pages
+
+The repository includes `.github/workflows/deploy.yml`. In **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**. Every push to `main` then installs dependencies, runs the unit and browser suites, builds `dist/`, and deploys it to Pages.
+
+Vite uses relative asset paths, so the build works for both user sites and repository subpaths. Article navigation uses URL hashes and requires no server rewrite rules.
