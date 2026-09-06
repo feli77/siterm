@@ -1,6 +1,12 @@
-export const themeNames = ['green', 'amber', 'ice', 'rose'] as const
+export const terminalProfiles = [
+  { name: 'amber', description: 'warm default' },
+  { name: 'green', description: 'low-glare green' },
+  { name: 'mono', description: 'neutral grayscale' },
+] as const
 
-export type ThemeName = (typeof themeNames)[number]
+export type ThemeName = (typeof terminalProfiles)[number]['name']
+
+export const themeNames = terminalProfiles.map((profile) => profile.name)
 
 export type PostSection =
   | { type: 'heading'; text: string }

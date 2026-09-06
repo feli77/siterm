@@ -6,7 +6,7 @@
 
 - 可执行的终端命令与接近 shell 的别名
 - 文章列表、标签过滤、文章阅读和 hash 深链接
-- 四套配色与本地偏好记忆
+- 三套 Terminal profile 与本地偏好记忆
 - 命令历史、方向键导航、Tab 补全和拼写建议
 - 响应式桌面/移动端布局与键盘可访问性
 - 浏览器本地留言簿
@@ -39,7 +39,7 @@ npm run preview
 - `src/config/site.ts`：姓名、简介、所在地、邮箱、GitHub 地址和默认主题。
 - `src/content/posts.ts`：文章元数据和正文区块。
 
-可用主题是 `green`、`amber`、`ice` 和 `rose`，默认主题是 `amber`。命令行为集中在 `src/lib/commands.ts`，展示组件在 `src/App.tsx`，视觉样式在 `src/styles.css`。
+可用 Terminal profile 是 `amber`、`green` 和 `mono`，默认值是 `amber`。命令行为集中在 `src/lib/commands.ts`，展示组件在 `src/App.tsx`，视觉样式在 `src/styles.css`。
 
 ## 命令
 
@@ -50,7 +50,7 @@ npm run preview
 | `posts [tag]` | 浏览全部文章或按标签筛选 |
 | `open <编号或 slug>` | 打开文章 |
 | `tags` | 浏览标签 |
-| `theme <名称>` | 切换配色 |
+| `theme [名称]` | 列出或切换 Terminal profile；`theme --list` 也可列出 |
 | `guestbook` | 查看留言簿 |
 | `sign "留言"` | 在当前浏览器中留下留言 |
 | `contact` | 查看联系方式 |

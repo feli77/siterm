@@ -143,7 +143,7 @@ export function parseCommand(rawInput: string, context: ParseContext): CommandRe
       return { kind: 'tags' }
     case 'theme': {
       const requested = args[0]?.toLowerCase()
-      if (!requested) return { kind: 'theme' }
+      if (!requested || requested === '--list') return { kind: 'theme' }
       if (themeNames.includes(requested as ThemeName)) {
         return { kind: 'theme', selected: requested as ThemeName }
       }

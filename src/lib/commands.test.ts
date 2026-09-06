@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { completeCommand, parseCommand, suggestCommand, tokenize } from './commands'
+import { themeNames } from '../types'
 
 const context = { history: [] }
 
@@ -46,6 +47,26 @@ describe('parseCommand', () => {
       kind: 'theme',
       invalid: 'ultraviolet',
     })
+  })
+
+  it('supports the complete terminal profile command matrix', () => {
+    expect(themeNames).toEqual(['amber', 'green', 'mono'])
+    expect(parseCommand('theme', context)).toEqual({ kind: 'theme' })
+    expect(parseCommand('theme --list', context)).toEqual({ kind: 'theme' })
+
+    for (const name of themeNames) {
+      expect(parseCommand(`theme ${name}`, context)).toEqual({
+        kind: 'theme',
+        selected: name,
+      })
+    }
+
+    for (const legacyName of ['ice', 'rose']) {
+      expect(parseCommand(`theme ${legacyName}`, context)).toEqual({
+        kind: 'theme',
+        invalid: legacyName,
+      })
+    }
   })
 
   it('returns recoverable error and hint lines when open has no target', () => {

@@ -19,7 +19,13 @@ import {
   type ErrorResult,
 } from './lib/commands'
 import { loadGuestbook, saveGuestbookEntry } from './lib/guestbook'
-import { themeNames, type GuestbookEntry, type Post, type ThemeName } from './types'
+import {
+  terminalProfiles,
+  themeNames,
+  type GuestbookEntry,
+  type Post,
+  type ThemeName,
+} from './types'
 
 interface TerminalEntry {
   id: number
@@ -48,7 +54,7 @@ const helpRows = [
   ['tags', 'list the archive by subject'],
   ['guestbook', 'read locally stored messages'],
   ['sign "message"', 'leave a note in this browser'],
-  ['theme <name>', 'change the terminal palette'],
+  ['theme [name]', 'change the Terminal profile'],
   ['contact', 'open communication channels'],
   ['history', 'show commands from this session'],
   ['clear', 'clear the terminal output'],
@@ -568,8 +574,8 @@ function Output({ result, theme, guestbook, onRun }: OutputProps) {
       return <TagsOutput onRun={onRun} />
     case 'theme':
       return (
-        <ThemeOutput
-          activeTheme={theme}
+        <TerminalProfilesOutput
+          activeProfile={theme}
           selected={result.selected}
           invalid={result.invalid}
           onRun={onRun}
@@ -844,34 +850,62 @@ function TagsOutput({ onRun }: { onRun: (command: string) => void }) {
   )
 }
 
-interface ThemeOutputProps {
-  activeTheme: ThemeName
+interface TerminalProfilesOutputProps {
+  activeProfile: ThemeName
   selected?: ThemeName
   invalid?: string
   onRun: (command: string) => void
 }
 
-function ThemeOutput({ activeTheme, selected, invalid, onRun }: ThemeOutputProps) {
+function TerminalProfilesOutput({
+  activeProfile,
+  selected,
+  invalid,
+  onRun,
+}: TerminalProfilesOutputProps) {
+  const precedingProfileNames = themeNames.slice(0, -1).join(', ')
+  const lastProfileName = themeNames.at(-1)
+
   return (
     <section className="output-block panel-output">
-      <OutputHeading eyebrow="~/preferences" title="Terminal palette" />
-      {selected && <p className="success-text">palette switched to {selected}.</p>}
-      {invalid && <p className="error-text">unknown palette “{invalid}”. choose one below.</p>}
-      <div className="theme-grid">
-        {themeNames.map((name) => (
-          <button
-            key={name}
-            type="button"
-            className={`theme-option theme-${name}${activeTheme === name ? ' active' : ''}`}
-            onClick={() => onRun(`theme ${name}`)}
-            aria-pressed={activeTheme === name}
-          >
-            <span className="theme-swatch"><i /><i /><i /></span>
-            <span>{name}</span>
-            {activeTheme === name && <span className="theme-active">active</span>}
-          </button>
-        ))}
-      </div>
+      <OutputHeading eyebrow="~/preferences" title="Terminal profiles" />
+      {selected && <p className="success-text">profile switched to {selected}.</p>}
+      {invalid && (
+        <div className="notice notice-error">
+          <p>error: unknown profile “{invalid}”</p>
+          <p>
+            hint: run <CommandButton command="theme --list" onRun={onRun} /> to choose{' '}
+            {precedingProfileNames}, or {lastProfileName}
+          </p>
+        </div>
+      )}
+      <table className="profile-table" aria-label="Terminal profiles">
+        <tbody>
+          {terminalProfiles.map(({ name, description }) => {
+            const current = activeProfile === name
+            return (
+              <tr key={name} aria-current={current ? 'true' : undefined}>
+                <td className="profile-marker" aria-hidden="true">{current ? '*' : ''}</td>
+                <th scope="row">
+                  <button
+                    type="button"
+                    className="profile-option"
+                    onClick={() => onRun(`theme ${name}`)}
+                    aria-pressed={current}
+                  >
+                    {name}
+                  </button>
+                </th>
+                <td>{description}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <p className="profile-guidance">
+        <span aria-hidden="true">*</span> current <span aria-hidden="true">·</span>{' '}
+        <code>theme &lt;name&gt;</code>
+      </p>
     </section>
   )
 }
