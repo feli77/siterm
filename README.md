@@ -51,10 +51,10 @@ npx playwright install chromium
 
 ## Customization
 
-Most personal customization happens in two files:
+Most personal customization happens in these locations:
 
 - `src/config/site.ts`: name, introduction, location, timezone, contact details, interests, and default Terminal profile.
-- `src/content/posts.ts`: post metadata and ordered article content blocks.
+- `src/content/*.md`: one Markdown file per post. The filename becomes its slug, front matter stores its metadata, and posts are ordered newest first by `date` automatically.
 
 You may also replace `public/favicon.svg`. Command definitions live in `src/commands/definitions/`, Command outputs in `src/components/outputs/`, Terminal session behavior in `src/hooks/`, and the ordered visual-system entry in `src/styles.css`. See the [frontend architecture guide](./docs/architecture.md) for the complete layout and extension workflow.
 

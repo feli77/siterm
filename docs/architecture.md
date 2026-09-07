@@ -47,5 +47,25 @@ Aliases belong to the canonical command definition rather than separate files. P
 ## Customize content
 
 - Edit `src/config/site.ts` for the site owner identity and default Terminal profile.
-- Edit `src/content/posts.ts` to publish or revise posts.
+- Add or edit a Markdown file directly under `src/content/` to publish or revise a post. The filename is the URL slug; no registry needs to be updated. Use this shape:
+
+  ```markdown
+  ---
+  title: Article title
+  excerpt: A short summary shown above the article.
+  date: 2026-09-07
+  readingTime: 5 min
+  tags:
+    - design
+    - software
+  ---
+
+  Opening paragraph.
+
+  ## Section heading
+
+  More article content.
+  ```
+
+  Article bodies support paragraphs, level-two headings, block quotes, unordered lists, and fenced code blocks. `src/content/posts.ts` discovers every `.md` file and orders the archive newest first by `date`.
 - Add Terminal profiles in `src/config/terminalProfiles.ts`, with matching visual tokens in `src/styles/tokens.css`.

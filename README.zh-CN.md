@@ -51,10 +51,10 @@ npx playwright install chromium
 
 ## 自定义
 
-大部分个人化配置集中在两个文件中：
+大部分个人化配置集中在以下位置：
 
 - `src/config/site.ts`：姓名、简介、所在地、时区、联系方式、兴趣和默认 Terminal profile。
-- `src/content/posts.ts`：文章元数据和按顺序排列的正文内容块。
+- `src/content/*.md`：每篇文章对应一个 Markdown 文件。文件名会成为 slug，front matter 保存元数据，文章会自动按 `date` 从新到旧排列。
 
 你还可以替换 `public/favicon.svg`。命令定义位于 `src/commands/definitions/`，Command output 位于 `src/components/outputs/`，Terminal session 行为位于 `src/hooks/`，有序的视觉系统入口仍为 `src/styles.css`。完整目录和扩展流程见[前端架构指南](./docs/architecture.md)。
 
