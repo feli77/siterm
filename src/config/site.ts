@@ -1,4 +1,4 @@
-import type { ThemeName } from '../types'
+import type { ThemeName } from '../types/terminal'
 
 export interface SiteConfig {
   name: string

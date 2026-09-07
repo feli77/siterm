@@ -16,6 +16,10 @@ _Avoid_: Vintage machine simulation, retro skin, sci-fi dashboard
 The chronological record of visitor commands and the textual responses emitted by the site during a terminal session.
 _Avoid_: Page view, content panel, output card
 
+**Command output**:
+The content emitted into the Transcript after a visitor command is interpreted, including articles and interactive recovery guidance.
+_Avoid_: Page, screen, view
+
 **Terminal profile**:
 A named, coherent foreground-and-background color configuration for the terminal session.
 _Avoid_: Theme skin, palette card, color picker

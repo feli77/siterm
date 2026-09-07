@@ -1,0 +1,160 @@
+.terminal-session {
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-bottom: 28px;
+  overflow-x: clip;
+  color: var(--ink);
+  background: var(--background);
+  font-size: 15px;
+  font-variant-ligatures: none;
+  line-height: 1.7;
+}
+
+.terminal-session::selection,
+.terminal-session ::selection { color: var(--background); background: var(--accent); }
+
+.transcript {
+  width: min(calc(100% - 40px), 920px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 92px) 0 150px;
+}
+
+.initial-output,
+.exchange,
+.response,
+.output-block { min-width: 0; }
+
+.boot-sequence {
+  padding-bottom: clamp(42px, 7vh, 72px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.boot-sequence pre {
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: clamp(8px, 1.2vw, 14px);
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.boot-sequence [data-boot="compact"] { display: none; }
+.boot-sequence p { max-width: 68ch; margin: 16px 0 0; color: var(--muted); }
+
+.welcome-copy { max-width: 68ch; padding: 42px 0 0 28px; }
+.welcome-copy .comment { margin: 0 0 10px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+.welcome-copy h2 { margin: 0; color: var(--ink); font-size: clamp(22px, 3vw, 30px); font-weight: 500; letter-spacing: -.035em; line-height: 1.25; }
+.welcome-copy p { margin: 9px 0 0; }
+.welcome-copy .owner-role { color: var(--ink); }
+.welcome-copy > p:last-child { color: var(--muted); }
+
+.command-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: baseline;
+  margin: 30px 0 0 28px;
+  color: var(--muted);
+}
+
+.command-suggestions > span { font-size: 12px; }
+
+.command-chip,
+.inline-command {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-align: left;
+}
+
+.command-chip:hover,
+.inline-command:hover { background: transparent; text-decoration-thickness: 2px; }
+
+.exchange {
+  display: grid;
+  gap: 18px;
+  padding: 42px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.initial-output + .exchange { margin-top: 42px; border-top: 1px solid var(--rule); }
+.response { padding-left: 28px; }
+.response > :first-child, .output-block > :first-child { margin-top: 0; }
+.response > :last-child, .output-block > :last-child { margin-bottom: 0; }
+
+.prompt { display: inline-flex; min-width: 0; align-items: baseline; white-space: nowrap; }
+.prompt-user { color: var(--accent); }
+.prompt-path { color: var(--muted); }
+.prompt-symbol { margin-left: 4px; color: var(--ink); }
+.prompt-command { min-width: 0; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.prompt-form {
+  position: static;
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  margin-top: 38px;
+  scroll-margin-block: 96px;
+}
+
+.prompt-form .prompt { flex: 0 0 auto; }
+.prompt-form input {
+  min-width: 1ch;
+  max-width: calc(100% - 16ch);
+  flex: 0 1 auto;
+  padding: 0;
+  color: var(--ink);
+  caret-color: var(--accent);
+  caret-shape: block;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+}
+
+.prompt-form:focus-within .prompt-symbol { color: var(--accent); }
+
+.status-line {
+  position: fixed;
+  z-index: 4;
+  right: 0;
+  bottom: var(--viewport-bottom, 0px);
+  left: 0;
+  display: flex;
+  height: 28px;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  padding: 0 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status-session { align-self: stretch; display: flex; align-items: center; margin-left: -12px; padding: 0 12px; color: var(--accent); border-right: 1px solid var(--rule); }
+.status-spacer { min-width: 0; flex: 1; }
+.status-line > :not(.status-spacer) { flex: 0 0 auto; }
+.status-compact { display: none; }
+.status-measure {
+  position: absolute;
+  display: flex;
+  width: max-content;
+  gap: inherit;
+  visibility: hidden;
+  pointer-events: none;
+}

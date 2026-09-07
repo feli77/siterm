@@ -1,4 +1,4 @@
-import type { GuestbookEntry } from '../types'
+import type { GuestbookEntry } from '../types/guestbook'
 
 const STORAGE_KEY = 'siterm.guestbook.v1'
 

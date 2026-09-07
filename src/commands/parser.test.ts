@@ -5,8 +5,8 @@ import {
   parseCommand,
   suggestCommand,
   tokenize,
-} from './commands'
-import { themeNames } from '../types'
+} from './index'
+import { themeNames } from '../config/terminalProfiles'
 
 const context = { history: [] }
 

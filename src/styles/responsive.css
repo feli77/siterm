@@ -1,0 +1,42 @@
+@media (max-width: 640px) {
+  .terminal-session { font-size: 14px; line-height: 1.72; }
+  .transcript { width: calc(100% - 28px); padding: 32px 0 124px; }
+  .boot-sequence { padding-bottom: 32px; }
+  .boot-sequence [data-boot="full"] { display: none; }
+  .boot-sequence [data-boot="compact"] { display: block; font-size: clamp(12px, 4vw, 15px); }
+  .boot-sequence p { max-width: 32ch; margin-top: 14px; }
+  .welcome-copy { padding: 30px 0 0 14px; }
+  .command-suggestions { margin-left: 14px; }
+  .exchange { gap: 14px; padding: 30px 0; }
+  .initial-output + .exchange { margin-top: 30px; }
+  .response { padding-left: 14px; }
+  .prompt { max-width: 100%; }
+  .prompt-command { white-space: pre-wrap; }
+  .prompt-form input { font-size: 16px; }
+
+  .command-chip, .inline-command, .help-row button, .post-title-command, .tag-cloud button, .profile-option { align-items: center; }
+  .command-chip, .inline-command, .tag-cloud button, .profile-option { display: inline-flex; padding-block: 10px; }
+
+  .status-line { display: none; }
+  .status-session { margin-left: -9px; padding-inline: 9px; }
+  .status-wide { display: none; }
+  .status-compact { display: inline; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-mark { display: none; }
+  .posts-table { display: none; }
+  .posts-priority { display: block; }
+  .posts-priority > li { display: grid; grid-template-columns: 3ch minmax(0, 1fr) 5ch; gap: 0 8px; padding: 12px 0; border-bottom: 1px dashed var(--rule); }
+  .post-priority-title { min-width: 0; }
+  .post-priority-read { color: var(--muted); text-align: right; }
+  .posts-priority .post-tags { grid-column: 2 / -1; }
+  .help-command { width: 13ch; }
+  .help-row th, .help-row td { padding-right: 8px; }
+  .help-aliases { display: none; }
+  .article-output, .article-body { max-width: 100%; }
+  .contact-list a { grid-template-columns: 8ch minmax(0, 1fr); }
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+  .command-chip, .inline-command, .help-row button, .post-title-command, .tag-cloud button, .profile-option { min-height: 44px; touch-action: manipulation; }
+  .post-title-command { white-space: normal; }
+}

@@ -56,7 +56,7 @@ npx playwright install chromium
 - `src/config/site.ts`：姓名、简介、所在地、时区、联系方式、兴趣和默认 Terminal profile。
 - `src/content/posts.ts`：文章元数据和按顺序排列的正文内容块。
 
-你还可以替换 `public/favicon.svg`。命令解析器位于 `src/lib/commands.ts`，完整 Terminal session 位于 `src/App.tsx`，视觉系统位于 `src/styles.css`。
+你还可以替换 `public/favicon.svg`。命令定义位于 `src/commands/definitions/`，Command output 位于 `src/components/outputs/`，Terminal session 行为位于 `src/hooks/`，有序的视觉系统入口仍为 `src/styles.css`。完整目录和扩展流程见[前端架构指南](./docs/architecture.md)。
 
 支持的 Terminal profile 是 `amber`、`green` 和 `mono`，默认值为 `amber`。
 
@@ -86,7 +86,7 @@ npx playwright install chromium
 
 纯静态站点无法自行保存所有访客共享的数据。默认的 `sign` 命令把留言写入访客的 `localStorage`，因此这些留言只会在同一浏览器中显示。如果存储不可用，新留言仍会在当前 session 中保持可见。
 
-公开共享的 Guestbook 需要 GitHub Discussions、Giscus、Supabase 或其他托管后端。这不是只替换 `src/lib/guestbook.ts` 就能完成的改动：异步集成还需要调整 `src/App.tsx` 中的状态与命令流程。
+公开共享的 Guestbook 需要 GitHub Discussions、Giscus、Supabase 或其他托管后端。这不是只替换 `src/lib/guestbook.ts` 就能完成的改动：异步集成还需要调整 `src/hooks/useTerminalSession.ts` 中的状态与命令流程。
 
 ## 部署到 GitHub Pages
 

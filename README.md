@@ -56,7 +56,7 @@ Most personal customization happens in two files:
 - `src/config/site.ts`: name, introduction, location, timezone, contact details, interests, and default Terminal profile.
 - `src/content/posts.ts`: post metadata and ordered article content blocks.
 
-You may also replace `public/favicon.svg`. The command parser lives in `src/lib/commands.ts`, the assembled Terminal session in `src/App.tsx`, and the visual system in `src/styles.css`.
+You may also replace `public/favicon.svg`. Command definitions live in `src/commands/definitions/`, Command outputs in `src/components/outputs/`, Terminal session behavior in `src/hooks/`, and the ordered visual-system entry in `src/styles.css`. See the [frontend architecture guide](./docs/architecture.md) for the complete layout and extension workflow.
 
 The supported Terminal profiles are `amber`, `green`, and `mono`; `amber` is the default.
 
@@ -86,7 +86,7 @@ The supported Terminal profiles are `amber`, `green`, and `mono`; `amber` is the
 
 A purely static site cannot store shared visitor data by itself. The default `sign` command writes entries to the visitor's `localStorage`, so those entries are visible only in the same browser. If storage is unavailable, new entries still remain visible for the current session.
 
-A public Guestbook requires an external service such as GitHub Discussions, Giscus, Supabase, or another hosted backend. This is not a drop-in replacement of `src/lib/guestbook.ts`: an asynchronous integration must also update the state and command flow in `src/App.tsx`.
+A public Guestbook requires an external service such as GitHub Discussions, Giscus, Supabase, or another hosted backend. This is not a drop-in replacement of `src/lib/guestbook.ts`: an asynchronous integration must also update the state and command flow in `src/hooks/useTerminalSession.ts`.
 
 ## Deploying to GitHub Pages
 

@@ -4,7 +4,7 @@ import {
   normalizeGuestbookMessage,
   saveGuestbookEntry,
 } from './guestbook'
-import type { GuestbookEntry } from '../types'
+import type { GuestbookEntry } from '../types/guestbook'
 
 const storageKey = 'siterm.guestbook.v1'
 
